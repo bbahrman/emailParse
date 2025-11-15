@@ -1,9 +1,8 @@
 import pathlib
 from datetime import date
-
 import pytest
-
 from app.models.booking import Booking
+from app.parsers.booking import parse_email
 
 
 FIXTURE_DIR = pathlib.Path(__file__).parent / "fixtures"
@@ -18,7 +17,7 @@ def load_email(name: str) -> str:
 def test_parse_premier_inn_booking_basic():
     raw_email = load_email("premier_inn_booking_maq1101970.eml")
 
-    booking = parse_premier_inn_booking(raw_email)
+    booking = parse_email(raw_email)
 
     # Type sanity
     assert isinstance(booking, Booking)
@@ -57,8 +56,8 @@ def test_parse_premier_inn_booking_basic():
 )
 def test_all_expected_fields_populated(attr_name: str):
     """Ensure all expected attributes exist and are non-empty."""
-    raw_email = load_email("premier_inn_booking_maq1101970.eml")
-    booking = parse_premier_inn_booking(raw_email)
+    raw_email = load_email("hub_premier_inn_test.eml.eml")
+    booking = parse_email(raw_email)
 
     assert hasattr(booking, attr_name), f"Missing attribute: {attr_name}"
 
