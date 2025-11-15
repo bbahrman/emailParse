@@ -1,6 +1,7 @@
 import decimal
 from datetime import date
 from pydantic import BaseModel, HttpUrl
+from typing import Optional
 
 
 class Booking(BaseModel):
@@ -22,3 +23,19 @@ class Booking(BaseModel):
     amount_paid: decimal.Decimal
     amount_total: decimal.Decimal
     room_type: str
+
+
+class ExtractionResult(BaseModel):
+    kind: str
+    booking: Optional[Booking]
+
+
+def get_extract_booking_tool():
+    return {
+        "type": "function",
+        "function": {
+            "name": "extract_booking",
+            "description": "Extracts booking information from an email.",
+            "parameters": ExtractionResult.model_json_schema(),
+        },
+    }
