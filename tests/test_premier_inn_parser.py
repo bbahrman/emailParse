@@ -1,3 +1,4 @@
+# tests/test_booking_parser.py
 import pathlib
 from datetime import date
 import pytest
@@ -36,7 +37,7 @@ def test_parse_premier_inn_booking_basic():
     assert booking.address == "Old Marylebone Road, GB, NW1 5DZ"
     assert booking.what3words == "///talent.actors.ideal"
 
-    # Pydantic HttpUrl will normalize, so we compare the string form
+    # Pydantic HttpUrl will normalize, so compare string form
     assert str(booking.website) == "https://premierinn.com/"
 
 
@@ -56,14 +57,14 @@ def test_parse_premier_inn_booking_basic():
 )
 def test_all_expected_fields_populated(attr_name: str):
     """Ensure all expected attributes exist and are non-empty."""
-    raw_email = load_email("hub_premier_inn_test.eml.eml")
+    raw_email = load_email("hub_premier_inn_test.eml")  # drop extra .eml if typo
     booking = parse_email(raw_email)
 
     assert hasattr(booking, attr_name), f"Missing attribute: {attr_name}"
 
     value = getattr(booking, attr_name)
-    # For dates / other non-str fields, just assert not None
-    if isinstance(value, (str,)):
+    # For str fields, assert non-empty trimmed; otherwise just non-None
+    if isinstance(value, str):
         assert value.strip() != "", f"Empty string for attribute: {attr_name}"
     else:
         assert value is not None, f"None value for attribute: {attr_name}"
