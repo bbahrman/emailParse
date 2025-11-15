@@ -6,15 +6,18 @@ app = FastAPI()
 logfire.configure()
 logfire.instrument_fastapi(app)
 
+
 # root
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
 
+
 # params
 @app.get("/hello")
 async def hello(name: str):
     return {"message": f"hello {name}"}
+
 
 # path
 @app.get("/hello/{name}")
