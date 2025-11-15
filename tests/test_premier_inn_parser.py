@@ -16,7 +16,7 @@ def load_email(name: str) -> str:
 
 
 def test_parse_premier_inn_booking_basic():
-    raw_email = load_email("premier_inn_booking_maq1101970.eml")
+    raw_email = load_email("hub_premier_inn_test.eml")
 
     booking = parse_email(raw_email)
 
