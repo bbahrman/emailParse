@@ -1,0 +1,3329 @@
+Delivered-To: benbahrman@gmail.com
+Received: by 2002:a05:7108:2114:b0:40f:aef5:1a09 with SMTP id w20csp200851gdb;
+        Thu, 20 Mar 2025 04:22:43 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHBHUmEgY3mEuLRQdSt4YTcMxeWE0aMKgs7CvHo7ynNEMgZ8suM/1CNUtTD+4AmU9Tm8m4u
+X-Received: by 2002:a5d:5888:0:b0:38f:3245:21fc with SMTP id ffacd0b85a97d-39973b2548fmr4337162f8f.50.1742469762983;
+        Thu, 20 Mar 2025 04:22:42 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1742469762; cv=none;
+        d=google.com; s=arc-20240605;
+        b=Zfm9xNLPkJwzcztpHBrJPKRapUQSJmI3lIjlGlQ0nceMJHLdW9iWEzOYIPDrd0bvX5
+         w2exzlyIhTrrItgcSBRFHLm9lUriPiPVUWuLw14jRSxxFbekWmQuHVkPlfCsHY5iyIXd
+         oQSrfPvY8TBEEHCHSStt6AIYz/22lmHjVPO2qvM+UVfG+kJNaOm558SpPPfKv1GNvQY6
+         E6f57zhy7OEUfZKc43cmczI1iIPC6XWMM48hsbnVN3QRgVm2771Vdp9ZzdXNUnQGjsYx
+         YJAP76Dj7y0Ay6pxcquPjNdDJ1UdVKye2cEcnW4mHJJIqPSHc+GEu4WdtWQrTqrQZRsh
+         2AYw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:message-id:mime-version:reply-to:to:date
+         :subject:from:dkim-signature;
+        bh=I/UorA9LcyHEE6GH43sgjfQ1/HZ0sG75pPGR7llxeJE=;
+        fh=6xwdDH5qvtqhIfnRnLur2Ax7igXylYuXPfX07Kh9E+4=;
+        b=E3wUSlf20poBkpLGvVZnqi0wFEmR/fdjyCnXE/AlDbqyLWvPfAm8zD/oET6BlcRqY/
+         SfsHmmnEV/H41I036nF+D6NjO14AdOEYuHWLBdwc0IY5bbFu3FRbGE1dXSVaAJYvUxoZ
+         aAj6+9GfD0EGPhEI1afANfOXzsduZ+YCMURmlXxD9b8K3yInD8cZNmBZkjWGt2B/uyEo
+         TOc7TW3JWjRJjwlSjSvE6Xc1aSYqeRX6G+ui4PsJ2Lb4xneOj6qki6M7FYZlYmL1eC8y
+         gw0p678Q7LKIXGUw6t5JGTYxWMNqdpmwPgkZVgIX1jsRYzI/6sCNJwrWAwOMLrkx4VBF
+         c43Q==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@hubcomms.premierinn.com header.s=whitbread header.b=FFAmk65d;
+       spf=pass (google.com: domain of bounce@service.premierinn.com designates 130.248.154.63 as permitted sender) smtp.mailfrom=bounce@service.premierinn.com;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=hubcomms.premierinn.com
+Return-Path: <bounce@service.premierinn.com>
+Received: from r63.p69.neolane.net (r63.p69.neolane.net. [130.248.154.63])
+        by mx.google.com with ESMTPS id ffacd0b85a97d-3996b0e4271si5037653f8f.48.2025.03.20.04.22.42
+        for <benbahrman@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 20 Mar 2025 04:22:42 -0700 (PDT)
+Received-SPF: pass (google.com: domain of bounce@service.premierinn.com designates 130.248.154.63 as permitted sender) client-ip=130.248.154.63;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@hubcomms.premierinn.com header.s=whitbread header.b=FFAmk65d;
+       spf=pass (google.com: domain of bounce@service.premierinn.com designates 130.248.154.63 as permitted sender) smtp.mailfrom=bounce@service.premierinn.com;
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=hubcomms.premierinn.com
+Return-Path: <bounce@service.premierinn.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+	d=hubcomms.premierinn.com; s=whitbread; t=1742469762;
+	bh=I/UorA9LcyHEE6GH43sgjfQ1/HZ0sG75pPGR7llxeJE=;
+	h=From:Subject:Date:To:MIME-Version:Message-ID:Content-Type;
+	b=FFAmk65d9GNAcgKWuDLfzKh5dUbmy1Qp36sV0skap8laCeT8fZQhlCwY6r8M1SbTm
+	 aFw1khKb6ijMyhCYInLPEb3ffd6XvlVZFx7C8+k697McNnwKKer6Y+TLenyVbxZBxz
+	 RR8L4JhA0TUSQs0HIituAg3OBgL7dxE9L8KRn9mLoob/dwflcbhi0iHXcNLcgluBwE
+	 35QIBt6A0/HTHCRjLqW101cJId0IX7jP7l0dNAxZslVlPZfMr7NiUMxveRZUHuDK5D
+	 /KzSDF/3YElFxV6+fB7tNaAHrBKv8Po8h/IhLiu5uRYj51/3CS1bvPHo0YB9UAZCiU
+	 /6gT6ZM8nM4Lg==
+X-MSFBL: iapwFEVFSaOY2WBX/WZdz3KiMoh2SqOw1hfAHLCyzlQ=|eyJnIjoiZGVmYXVsdF8
+	yZTI1MmZiZC0wNzI4LTQ0ZmMtOGVkOC1lM2UzZGI0YjUwMTkiLCJyIjoiYmVuYmF
+	ocm1hbkBnbWFpbC5jb20iLCJiIjoid2hpdGJyZWFkXzEzMC4yNDguMTU0LjYzX2R
+	lZmF1bHRfMmUyNTJmYmQtMDcyOC00NGZjLThlZDgtZTNlM2RiNGI1MDE5IiwicmN
+	wdF9tZXRhIjp7ICJpbiI6ICJ3aGl0YnJlX3J0X3Byb2QxIiwgInIiOiAiYmVuYmF
+	ocm1hbkBnbWFpbC5jb20iLCAibSI6ICIyNDA5MzAzMTMiLCAiZCI6ICIyMzgyMTg
+	wODMiLCAiaSI6ICIiIH0sImluYm91bmRfdGxzX2NpcGhlciI6IlRMU3YxLjI6REh
+	FLVJTQS1BRVMyNTYtR0NNLVNIQTM4NCJ9
+Received: from [52.208.124.98] ([52.208.124.98:35257] helo=r63.p69.neolane.net)
+	by irl1-prod1-mta-i-0f71dceb4438a8d82 (envelope-from <bounce@service.premierinn.com>)
+	(ecelerity 4.4.1.20033 r(msys-ecelerity:tags/4.4.1.0^0)) with ESMTPS (cipher=DHE-RSA-AES256-GCM-SHA384) 
+	id DB/0B-28574-28AFBD76; Thu, 20 Mar 2025 11:22:42 +0000
+From: "hub by Premier Inn" <donotreply@hubcomms.premierinn.com>
+Subject: Thank You Benjamin. Your booking has been confirmed
+Date: Thu, 20 Mar 2025 11:22:40 GMT
+To: <benbahrman@gmail.com>
+Reply-To: "DoNotReply" <reservations@premierinn.com>
+MIME-Version: 1.0
+X-mailer: nlserver, Build 6.7.0
+Message-ID: <NM60E5C4E090E32EB63whitbre_rt_prod1@service.premierinn.com>
+Content-Type: text/html;
+	charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<!doctype html>
+
+<html xmlns=3D"http://www.w3.org/1999/xhtml" xmlns:v=3D"urn:schemas-microso=
+ft-com:vml" xmlns:o=3D"urn:schemas-microsoft-com:office:office" lang=3D"en"=
+ xml:lang=3D"en">
+    <head>
+ <meta http-equiv=3D"Content-Type" content=3D"text/html;" charset=3D"utf-8"=
+/>
+<meta http-equiv=3D"X-UA-Compatible" content=3D"IE=3Dedge,chrome=3D1"/>
+<meta name=3D"MobileOptimized" content=3D"320"/>
+<meta name=3D"HandHeldFriendly" content=3D"true"/>
+<meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=3D1.=
+0"/>
+    <title>Premier Inn EM_HUB_BOOKINGCONF_001_OP</title>
+    <!--[if gte mso 9]>
+<xml>
+<o:OfficeDocumentSettings>
+    <o:AllowPNG/>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+    </o:OfficeDocumentSettings>
+</xml>
+<![endif]-->
+    <style type=3D"text/css">
+            /* CLIENT-SPECIFIC STYLES */
+
+    /* Force Outlook to provide a "view in browser" message */
+
+    .ExternalClass{width:100%;} /* Force Hotmail to display emails at full =
+width */
+
+    .ExternalClass, .ExternalClass p, .ExternalClass span, .ExternalClass f=
+ont, .ExternalClass td, .ExternalClass div {line-height: 100%;} /* Force Ho=
+tmail to display normal line spacing */
+
+    /* Prevent WebKit and Windows mobile changing default text sizes */
+
+    /* Remove spacing between tables in Outlook 2007 and up */
+
+    /* Allow smoother rendering of resized image in Internet Explorer */
+
+    /* RESET STYLES */
+
+    /* iOS BLUE LINKS */
+
+    /* MOBILE STYLES */
+
+    body, html {padding: 0;margin: 0;background-color: #F8F8F8;}
+
+    p {font-family: Arial, sans-serif !important; font-size:14px; line-heig=
+ht:21px; color: #333333;}
+
+    h1 {font-family: 'pibold', Arial, sans-serif !important; font-size:19px=
+; line-height:24px; color: #333333; font-weight:bold;}
+
+    h2 {font-family: 'pibold', Arial, sans-serif !important; font-size:16px=
+; line-height:22px; color: #333333; font-weight:bold;}
+
+    h3 {font-family: Arial, sans-serif !important; font-size:23px; line-hei=
+ght:28px; color: #333333; font-weight:bold;}
+
+    h7 {font-family: Arial, sans-serif !important; font-size:12px; line-hei=
+ght:16px; color: #333333;}
+
+    a {color: #511e62; text-decoration:underline;}
+
+    @media screen and (max-width: 600px) {
+
+        /* ALLOWS FOR FLUID TABLES */
+
+        table[class=3D"wrapper"]{width:100% !important;}
+
+        /* ADJUSTS LAYOUT OF LOGO IMAGE */
+
+        td[class=3D"logo"]{
+
+            text-align: left;
+
+            padding: 10px 0 10px 0 !important;
+
+        }
+
+        td[class=3D"logo"] img{
+
+            margin:0 auto!important;
+
+        }
+
+
+
+        /* USE THESE CLASSES TO HIDE CONTENT ON MOBILE */
+
+        td[class=3D"mobile-hide"]{
+
+            display:none;}
+
+        img[class=3D"mobile-hide"]{
+
+            display: none !important;
+
+        }
+
+        img[class=3D"img-max"]{
+
+            max-width: 100% !important;
+
+            height:auto !important;
+
+        }
+
+        /* FULL-WIDTH TABLES */
+
+        table[class=3D"responsive-table"]{
+
+            width:100%!important;
+
+        }
+
+        /* UTILITY CLASSES FOR ADJUSTING PADDING ON MOBILE */
+
+        td[class=3D"padding"]{
+
+            padding: 10px 5% 15px 5% !important;
+
+        }
+
+        td[class=3D"padding-copy"]{
+
+            padding: 10px 5% 10px 5% !important;
+
+            text-align: center;
+
+        }
+
+        td[class=3D"padding-meta"]{
+
+            padding: 30px 5% 0px 5% !important;
+
+            text-align: center;
+
+        }
+
+        td[class=3D"no-pad"]{
+
+            padding: 0 0 20px 0 !important;
+
+        }
+
+        td[class=3D"no-padding"]{
+
+            padding: 0 !important;
+
+        }
+
+        td[class=3D"section-padding"]{
+
+            padding: 50px 10px 50px 10px !important;
+
+        }
+
+        td[class=3D"section-padding-bottom-image"]{
+
+            padding: 50px 10px 0 10px !important;
+
+        }
+=09=09
+        table[class=3D"heroimage"]{
+
+            max-width: 600px !important;
+
+            height:auto !important;
+
+        }=09=09
+
+    }
+
+    @media only screen and (max-width: 480px), only screen and (max-device-=
+width: 480px) {
+=2Etd100 {
+    width: 100%!important;
+    display:block!important;
+  }
+
+ .col15 {
+    width:15px !important;
+  }
+
+ .col30 {
+    height:30px !important;
+  }
+
+ =09table {width:100%; max-width:480px !important; height: auto; margin: 0 =
+auto !important; padding:0px;}
+
+
+table td[class=3D"cmp-horizontal-column"] {width:100%!important;
+
+        display: block!important;}
+
+    .cmp-horizontal-column {width:100% !important; max-width: 440px; displa=
+y: block !important; height:auto !important;}
+
+    .cmp-horizontal-column img {width:100%; height:auto;}
+
+        .cmp-horizontal-rule {width:90%; max-width: 300px!important; }
+
+   .responsive-table {width:100% !important; max-width: 460px!important; he=
+ight:auto !important;}
+
+=2Ecmp-contentfragment__element--main {width: 440px;}
+
+=2Ehotel-details img {width:50% !important; height:auto;}
+
+    .mob-hide {display: none;}
+
+    .desk-hide {display: block !important; width: 100% !important; height: =
+auto !important; overflow: visible !important;}
+
+=09.full-width {width: 320px !important; height:auto !important;}
+
+=09.innertable {width: 300px !important; height:auto !important;}
+
+    .innertable-border {width: 280px !important; height:auto !important;}
+
+    .footer-links p {width: 320px;}
+
+    /* ADJUST BUTTONS ON MOBILE */
+
+        td[class=3D"mobile-wrapper"]{
+
+            padding: 10px 5% 10px 5% !important;
+
+        }
+
+        table[class=3D"mobile-button-container"]{
+
+            margin:0 auto;
+
+            width:100% !important;
+
+        }
+
+        a[class=3D"mobile-button"]{
+
+            width:80% !important;
+
+            padding: 10px !important;
+
+            border: 0 !important;
+
+            font-size: 16px !important;
+
+            color: #511e62;
+
+        }
+
+    }
+
+
+
+        .MainHeaderTopMargin h1{
+
+            margin:20px 0px 10px 0px;
+
+         }
+
+        .booking p{
+
+            margin:10px 0px 0px 0px;
+
+         }
+
+         .cancel p{
+
+            margin:0px 0px 0px 50px;
+
+         }
+
+         .body p{
+
+            margin:10px 0px 10px 0px;
+
+         }
+
+         .hotelname h2{
+
+            margin:10px 0px 10px 0px;
+
+         }
+
+         .hotelname p{
+
+            margin:10px 0px 0px 0px;
+
+         }
+
+         .roomdetails h2{
+
+            margin:20px 0px 10px 0px;
+
+        }
+
+        .roomdetails p{
+
+            margin:10px 0px 0px 0px;
+
+        }
+
+        .room-total h2{
+
+            margin:5px 0px 0px 0px;
+
+        }
+
+        .extras-title p{
+
+            margin:30px 0px 0px 0px;
+
+            font-family: Arial;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            font-style: normal;
+
+        }
+
+         .extras p{
+
+            margin:10px 0px 0px 0px;
+
+        }
+
+        .extras-price p{
+
+            margin:5px 0px 0px 0px;
+
+        }
+
+        .restaurant-reservation h3{
+
+            margin:10px 0px 0px 0px;
+
+            font-family: Arial;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            font-style: normal;
+
+        }
+
+        .hotel-details h2 {
+
+            margin:10px 0px 10px 0px;
+
+            font-family: Arial;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            font-style: normal;
+
+        }
+
+        .hotel-details p{
+
+            margin:10px 0px 10px 0px;
+
+        }
+=09=09.hotel-details td{
+
+            font-family: Arial, sans-serif !important; font-size:14px; line=
+-height:21px; color: #333333;
+
+        }
+=09=09
+=09=09.hotel-details table{
+
+            width:280px;
+
+        }
+
+        .telephone p{
+
+            padding:0px;
+
+            margin:0px 0px 0px 0px;
+
+            font-family: Arial;
+
+            font-size: 12px;
+
+            font-weight: normal;
+
+            font-style: normal;
+
+            font-stretch: normal;
+
+            line-height: 1.33;
+
+            letter-spacing: normal;
+
+            color: #333333;
+
+        }
+
+        .directions p{
+
+            margin:10px 0px 16px 0px;
+
+        }
+
+        .refnum p{
+
+            margin:0px 0px 0px 0px;
+
+            font-family: Arial;
+
+            font-size: 23px;
+
+            font-weight: normal;
+
+            font-style: normal;
+
+            font-stretch: normal;
+
+            line-height: 1.22;
+
+            letter-spacing: normal;
+
+        }
+=09=09
+=09=09.cq-placeholder div {
+=09=09=09
+=09=09=09font-family: Arial, sans-serif !important; 
+=09=09=09font-size:14px; 
+=09=09=09line-height:21px; 
+=09=09=09color: #333333;=09
+=09=09
+=09=09}
+
+=09=09.owa div {display: block !important;}
+
+=09=09.button:hover {transition: 0.2s !important; background-color: #008FA8=
+!important; mso-border-alt: 8px solid #008FA8 !important; color: #ffffff !i=
+mportant; cursor: pointer;}
+=09=09
+=09=09.heroimage img{
+=09=09
+=09=09=09width:600px;
+=09=09=09height: auto;
+=09=09
+=09=09}
+    </style>
+</head>
+
+    <body style=3D"background-color: #F8F8F8; margin: 0px; padding: 0px;">
+  
+
+
+
+
+    
+    
+    
+<!--[if mso]><div style=3D"display: none;"><![endif]-->
+<div style=3D"display: none !important; text-size: 1px !important; line-hei=
+ght: 1px !important; mso-hide:all !important; opacity:0 !important; overflo=
+w:hidden !important;  visibility:hidden !important;">Thank you for choosing=
+ to stay with us. </div><!--[if mso]></div><![endif]-->
+
+
+    
+    
+    
+
+    
+    
+
+    
+<link rel=3D"stylesheet" href=3D"/libs/cq/experience-fragments/components/x=
+fpage/content.css" type=3D"text/css">
+<link rel=3D"stylesheet" href=3D"/apps/whitbread/clientlibs/xf-fix.css" typ=
+e=3D"text/css">
+
+
+
+<div class=3D"xf-content-height">
+    
+
+
+<div class=3D"aem-Grid aem-Grid--12 aem-Grid--default--12 ">
+    
+    <table class=3D"full-width cmp-horizontal" border=3D"0" cellpadding=3D"=
+0" cellspacing=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;=
+-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-=
+collapse:collapse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"center" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"600" class=3D"responsive-table" style=3D"-webkit-text-si=
+ze-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rsp=
+ace:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" width=3D"600" valign=3D"top" style=3D"font-family:Arial, Verdana, Sans=
+-Serif; font-size: 12px; color: #58595b; text-align:center;">
+                                                
+
+
+
+
+    
+    
+    
+<table class=3D"full-width" align=3D"center" width=3D"600" cellspacing=3D"0=
+" cellpadding=3D"0" border=3D"0">
+<tbody>
+<tr>
+<td style=3D"font-size: 11px; color: #58595b; line-height: 14px; font-famil=
+y: Arial, Verdana, Geneva, sans-serif;" align=3D"center">
+=09<div style=3D"font-family: Arial, Helvetica, sans-serif; padding: 0px; m=
+argin: 0px; line-height: 12px; height: 12px!important; mso-line-height-rule=
+:exactly;">&nbsp;</div>
+Can't see this email=3F <a href=3D"http://t.service.premierinn.com/r/=3Fid=
+=3Dhe5c4e09,e32eb63,74b9df5&e=3DbWlkPTI0MDkzMDMxMyZDSUQ9RU1DX1RSX0Jvb2tpbmd=
+fSHViQ29uZl9ub25lX25vbmVfMjAyNTAzMjBfd2JnT3BlcmFfSFVCX0Jvb2tpbmdDb25mMDAxJn=
+AxPSU0MFdFcGQ4eUdNZzd5clpkZE85RUJSN3BqJTJGcVE3bSUyRm1RajdGd0pvRWh0NyUyQk0lM=
+0Q&s=3DHiw1MNttmGjcsGWyQ29mSJHEW6GCONFOgMIbgk2qM00" _label=3D"Mirror Page" =
+_type=3D"mirrorPage" target=3D"_blank" style=3D"color: #333333; text-decora=
+tion: underline; font-weight: bold;">View online</a>=09<div style=3D"font-f=
+amily: Arial, Helvetica, sans-serif; padding: 0px; margin: 0px; line-height=
+: 8px; height: 8px!important; mso-line-height-rule:exactly;">&nbsp;</div> <=
+/td>
+</tr>
+</tbody>
+    </table>
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+    
+</div>
+
+</div>
+
+
+    
+    
+    
+
+    
+    
+
+    
+
+
+
+<div class=3D"xf-content-height">
+    
+
+
+<div class=3D"aem-Grid aem-Grid--12 aem-Grid--default--12 ">
+    
+    <table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"100%" bgcolor=3D"#FFFFFF" style=3D"-webkit-text-size-adj=
+ust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0p=
+t;border-collapse:collapse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"center" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"580" class=3D"responsive-table" style=3D"-webkit-text-si=
+ze-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rsp=
+ace:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" width=3D"200" valign=3D"middle" style=3D"padding-top:10px;padding-bott=
+om:5px; max-width:170px;">
+                                                
+
+
+
+
+    
+    
+    
+
+    <img src=3D"http://res.service.premierinn.com/res/img/3588E9F98132D5FC1=
+C7EE4A369F17213.jpg" width=3D"170" class=3D"cq-dd-image" data-emptytext=3D"=
+Image"/>
+
+
+
+
+
+
+                                            </td>
+                                            <td class=3D"cmp-horizontal-col=
+umn" width=3D"200" valign=3D"middle">
+                                                
+
+
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+  <table cellspacing=3D"0" cellpadding=3D"0" border=3D"0" width=3D"100%" st=
+yle=3D"width: 100% !important;">
+        <tr>
+            <td align=3D"left" valign=3D"top" width=3D"600px" height=3D"1" =
+style=3D"background-color: #e0e0e0; border-collapse:collapse; mso-table-lsp=
+ace: 0pt; mso-table-rspace: 0pt; mso-line-height-rule: exactly; line-height=
+: 1px;"><!--[if gte mso 15]>&nbsp;<![endif]--></td>
+        </tr>
+    </table>
+
+    
+</div>
+
+</div>
+
+
+    
+    
+    <table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"100%" bgcolor=3D"#F8F8F8" style=3D"-webkit-text-size-adj=
+ust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0p=
+t;border-collapse:collapse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"center" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"580" class=3D"responsive-table" style=3D"-webkit-text-si=
+ze-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rsp=
+ace:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" valign=3D"top" style=3D"background-color:#ffffff;">
+                                                
+
+
+
+
+    
+    
+    
+
+    
+    
+
+    
+
+
+
+<div class=3D"xf-content-height">
+    
+
+
+<div class=3D"aem-Grid aem-Grid--12 aem-Grid--default--12 ">
+    
+    <table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-si=
+ze-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:co=
+llapse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"580px" class=3D"responsive-table" style=3D"-webkit-text-si=
+ze-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rsp=
+ace:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" valign=3D"top" style=3D"padding-right: 10px; padding-left: 10px;">
+                                                
+
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"MainHeaderTopMargin">
+        
+
+        
+        
+        
+        <h1>Booking confirmed</h1>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"booking">
+        
+
+        
+        
+        
+        <p>Booking Reference<br />
+</p>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"refnum">
+        
+
+        
+        
+        
+        <p>MAQ1101970</p>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+    
+</div>
+
+</div>
+
+
+    
+    
+    
+
+    
+    
+
+    
+
+
+
+<div class=3D"xf-content-height">
+    
+
+
+<div class=3D"aem-Grid aem-Grid--12 aem-Grid--default--12 ">
+    
+    <table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-si=
+ze-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:co=
+llapse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"600" class=3D"responsive-table" style=3D"-webkit-text-size=
+-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspac=
+e:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" valign=3D"top" style=3D"padding: 0px 10px 0px 10px;">
+                                                
+
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"body">
+        
+
+        
+        
+        
+        <p><b>Hello=C2=A0Benjamin Bahrman</b></p>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"body">
+        
+
+        
+        
+        
+        <p>It=E2=80=99s all booked! Sit back, relax, and we=E2=80=99ll see =
+you soon at check-in.</p>
+<p>Thanks for choosing hub for your stay.</p>
+<p>Please note,<b>=C2=A0check-in is from 3pm</b>=C2=A0in all our hub hotels=
+ in the UK. This just gives our teams enough time to ensure your room is sp=
+ick, span, and perfect for your arrival.</p>
+<p>All your booking info is below but if you need anything else, just give =
+us a shout =E2=80=93 our friendly teams are here to help.</p>
+<p>We hope you have a great stay.</p>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+    
+</div>
+
+</div>
+
+
+    
+    
+    
+
+    
+    
+
+    
+
+
+
+<div class=3D"xf-content-height">
+    
+
+
+<div class=3D"aem-Grid aem-Grid--12 aem-Grid--default--12 ">
+    
+    <table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-si=
+ze-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:co=
+llapse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"580px" class=3D"responsive-table" style=3D"-webkit-text-si=
+ze-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rsp=
+ace:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" width=3D"449px" valign=3D"top" style=3D"padding-left: 10px; padding-to=
+p: 10px;">
+                                                
+
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"hotelname">
+        
+
+        
+        
+        
+        <h2>Premier Inn=C2=A0London Marylebone</h2>
+<p>Check in<br />
+<b>  Thu 20 Mar 2025
+ from 
+3pm=E2=80=8B=E2=80=8B</b></p>
+<p>Check out<br />
+<b>  Fri 28 Mar 2025
+ before 
+12pm</b>=C2=A0(8 nights)</p>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+
+                                            </td>
+                                            <td class=3D"cmp-horizontal-col=
+umn" width=3D"121px" valign=3D"top" style=3D"padding-left: 10px; padding-ri=
+ght: 10px; padding-top: 10px;">
+                                                
+
+
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+<table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspacing=
+=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-size-=
+adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:colla=
+pse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"580" class=3D"responsive-table" style=3D"-webkit-text-size=
+-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspac=
+e:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" valign=3D"top" style=3D"padding: 0px 10px 0px 10px;">
+                                                
+
+
+
+
+    
+    
+    <!--Conditional Container Component-->
+<!--Loop through conditions and add the text from the textfield and a parsy=
+s for every textfield added except for the last one-->
+<div class=3D"cmp-conditional">
+    <!--Conditional statement-->
+    
+    
+        
+
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"cmp-contentfragment__element cmp-contentfragment__element=
+--main">
+        
+
+        
+        
+        
+        <p>This is a Standard rate booking, which can be amended up to=C2=
+=A01pm on the day of arrival on a like for like basis.=C2=A0The fastest way=
+ to manage your booking is online on our website, just=C2=A0<a href=3D"http=
+://t.service.premierinn.com/r/=3Fid=3Dhe5c4e09,e32eb63,74b9df9&e=3DbWlkPTI0=
+MDkzMDMxMyZDSUQ9RU1DX1RSX0Jvb2tpbmdfSHViQ29uZl9ub25lX25vbmVfMjAyNTAzMjBfd2J=
+nT3BlcmFfSFVCX0Jvb2tpbmdDb25mMDAx&s=3DxmMbrOvgB3iDO0ZXxl0mxFjnChIQuO3bjBnjG=
+gbgofQ">click here</a> and enter your booking details.</p>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+
+    
+
+    <!--Conditional statement-->
+    
+    
+</div>
+
+    
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"cmp-contentfragment__element cmp-contentfragment__element=
+--main">
+        
+
+        
+        
+        
+        <p>Please see=C2=A0<a href=3D"http://t.service.premierinn.com/r/=3F=
+id=3Dhe5c4e09,e32eb63,74b9dfb&e=3DbWlkPTI0MDkzMDMxMyZDSUQ9RU1DX1RSX0Jvb2tpb=
+mdfSHViQ29uZl9ub25lX25vbmVfMjAyNTAzMjBfd2JnT3BlcmFfSFVCX0Jvb2tpbmdDb25mMDAx=
+&s=3DG9AROECSN3IU5ws-oWjomKHmtOiDIx_Tpd8l7VvWQnE">our website</a>=C2=A0for =
+full cancellation terms and conditions.</p>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+    
+</div>
+
+</div>
+
+
+    
+    
+    
+
+
+    
+    
+    
+
+    
+    
+
+    
+
+
+
+<div class=3D"xf-content-height">
+    
+
+
+<div class=3D"aem-Grid aem-Grid--12 aem-Grid--default--12 ">
+    
+    <!--Conditional Container Component-->
+<!--Loop through conditions and add the text from the textfield and a parsy=
+s for every textfield added except for the last one-->
+<div class=3D"cmp-conditional">
+    <!--Conditional statement-->
+    
+    
+        
+
+
+
+
+    
+    
+    <table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-si=
+ze-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:co=
+llapse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"580px" class=3D"responsive-table" style=3D"-webkit-text-si=
+ze-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rsp=
+ace:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" valign=3D"top" style=3D"padding-right: 10px; padding-left: 10px;">
+                                                
+
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"roomdetails">
+        
+
+        
+        
+        
+        <h2><b>Room details</b></h2>
+<p>Benjamin Bahrman<br />Hub Standard Room<br />
+
+  1
+  
+    adult
+  
+
+</p>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+
+    
+    
+    <table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-si=
+ze-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:co=
+llapse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"580px" class=3D"responsive-table" style=3D"-webkit-text-si=
+ze-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rsp=
+ace:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" width=3D"285px" valign=3D"top" style=3D"padding-left: 10px;">
+                                                
+
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"cmp-contentfragment__element cmp-contentfragment__element=
+--main">
+        
+
+        
+        
+        
+        <h2>Room total:</h2>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+
+                                            </td>
+                                            <td class=3D"cmp-horizontal-col=
+umn" width=3D"285px" valign=3D"top" style=3D"padding-left: 10px; padding-ri=
+ght: 10px;">
+                                                
+
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"cmp-contentfragment__element cmp-contentfragment__element=
+--main">
+        
+
+        
+        
+        
+        <h2>
+&pound;770.00</h2>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+
+
+    
+
+    <!--Conditional statement-->
+    
+    
+        
+
+
+
+
+
+    
+
+    <!--Conditional statement-->
+    
+    
+        
+
+
+
+
+
+    
+
+    <!--Conditional statement-->
+    
+    
+        
+
+
+
+
+
+    
+
+    <!--Conditional statement-->
+    
+    
+        
+
+
+
+
+
+    
+
+    <!--Conditional statement-->
+    
+    
+        
+
+
+
+
+
+    
+
+    <!--Conditional statement-->
+    
+    
+        
+
+
+
+
+
+    
+
+    <!--Conditional statement-->
+    
+    
+        
+
+
+
+
+
+    
+
+    <!--Conditional statement-->
+    
+    
+        
+
+
+
+
+
+    
+
+    <!--Conditional statement-->
+    
+    
+        
+
+
+
+
+
+    
+
+    <!--Conditional statement-->
+    
+    
+</div>
+
+    
+
+
+    
+</div>
+
+</div>
+
+
+    
+    
+    
+
+    
+    
+
+    
+
+
+
+<div class=3D"xf-content-height">
+    
+
+
+<div class=3D"aem-Grid aem-Grid--12 aem-Grid--default--12 ">
+    
+    <table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-si=
+ze-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:co=
+llapse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"580" class=3D"responsive-table" style=3D"-webkit-text-size=
+-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspac=
+e:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" valign=3D"top" style=3D"padding-left:10px;">
+                                                
+
+
+
+
+    
+    
+    
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"extras-title">
+        
+
+        
+        
+        
+        <p><b>Extras</b></p>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+    
+    
+    
+
+
+
+
+    
+    
+    
+
+    
+        <p>1 x Early Check In 
+&pound;15.00 @ 
+&pound;15.00 each</p>
+
+    
+
+
+
+
+    
+    
+    
+
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+<table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspacing=
+=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-size-=
+adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:colla=
+pse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"580" class=3D"responsive-table" style=3D"-webkit-text-size=
+-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspac=
+e:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" width=3D"285" valign=3D"top" style=3D"padding-left:10px;">
+                                                
+
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"extras-title">
+        
+
+        
+        
+        
+        <h2><b>Extras total:</b></h2>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+
+                                            </td>
+                                            <td class=3D"cmp-horizontal-col=
+umn" width=3D"285" valign=3D"top" style=3D"padding-left:10px;">
+                                                
+
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"extras-title">
+        
+
+        
+        
+        
+        <h2><b>
+&pound;15.00</b></h2>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+<div class=3D"cq-placeholder " data-emptytext=3D"Placeholder for a deleted =
+inherited Component"></div>
+<table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspacing=
+=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-size-=
+adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:colla=
+pse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"580" class=3D"responsive-table" style=3D"-webkit-text-size=
+-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspac=
+e:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" valign=3D"top" style=3D"padding-left:10px;">
+                                                
+
+
+
+
+    
+    
+    
+
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+    
+</div>
+
+</div>
+
+
+    
+    
+    
+
+    
+    
+
+    
+
+
+
+<div class=3D"xf-content-height">
+    
+
+
+<div class=3D"aem-Grid aem-Grid--12 aem-Grid--default--12 ">
+    
+    <table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-si=
+ze-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:co=
+llapse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"600" class=3D"responsive-table" style=3D"-webkit-text-size=
+-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspac=
+e:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" valign=3D"top" style=3D"padding: 0px 10px 0px 10px;">
+                                                
+
+
+
+
+    
+    
+    <!--Conditional Container Component-->
+<!--Loop through conditions and add the text from the textfield and a parsy=
+s for every textfield added except for the last one-->
+<div class=3D"cmp-conditional">
+    <!--Conditional statement-->
+    
+    
+</div>
+
+    
+
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+    
+</div>
+
+</div>
+
+
+    
+    
+    
+
+    
+    
+
+    
+
+
+
+<div class=3D"xf-content-height">
+    
+
+
+<div class=3D"aem-Grid aem-Grid--12 aem-Grid--default--12 ">
+    
+    <table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-si=
+ze-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:co=
+llapse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"580px" class=3D"responsive-table" style=3D"-webkit-text-si=
+ze-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rsp=
+ace:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" width=3D"285px" valign=3D"top" style=3D"padding-right: 10px; padding-l=
+eft: 10px;">
+                                                
+
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"extras-title">
+        
+
+        
+        
+        
+        <p><b>Total price</b></p>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+
+                                            </td>
+                                            <td class=3D"cmp-horizontal-col=
+umn" width=3D"285px" valign=3D"top" style=3D"padding-right: 10px; padding-l=
+eft: 10px;">
+                                                
+
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"extras-title">
+        
+
+        
+        
+        
+        <p><b>
+&pound;785.00</b></p>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+<table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspacing=
+=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-size-=
+adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:colla=
+pse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"580" class=3D"responsive-table" style=3D"-webkit-text-size=
+-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspac=
+e:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" valign=3D"top" style=3D"padding-right: 10px; padding-left: 10px;">
+                                                
+
+
+
+
+    
+    
+    <!--Conditional Container Component-->
+<!--Loop through conditions and add the text from the textfield and a parsy=
+s for every textfield added except for the last one-->
+<div class=3D"cmp-conditional">
+    <!--Conditional statement-->
+    
+    
+</div>
+
+    
+
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+    
+</div>
+
+</div>
+
+
+    
+    
+    
+
+    
+    
+
+    
+
+
+
+<div class=3D"xf-content-height">
+    
+
+
+<div class=3D"aem-Grid aem-Grid--12 aem-Grid--default--12 ">
+    
+    <table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-si=
+ze-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:co=
+llapse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"580px" class=3D"responsive-table" style=3D"-webkit-text-si=
+ze-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rsp=
+ace:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" valign=3D"top" style=3D"padding-right: 10px; padding-left: 10px; paddi=
+ng-top: 10px;">
+                                                
+
+
+
+
+    
+    
+    <!--Conditional Container Component-->
+<!--Loop through conditions and add the text from the textfield and a parsy=
+s for every textfield added except for the last one-->
+<div class=3D"cmp-conditional">
+    <!--Conditional statement-->
+    
+    
+</div>
+
+    
+
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+    
+</div>
+
+</div>
+
+
+    
+    
+    
+
+    
+    
+
+    
+
+
+
+<div class=3D"xf-content-height">
+    
+
+
+<div class=3D"aem-Grid aem-Grid--12 aem-Grid--default--12 ">
+    
+    <table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-si=
+ze-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:co=
+llapse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"580" class=3D"responsive-table" style=3D"-webkit-text-size=
+-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspac=
+e:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" valign=3D"top" style=3D"padding-right: 10px;padding-left: 10px; paddin=
+g-top: 10px;">
+                                                
+
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"roomdetails">
+        
+
+        
+        
+        
+        <h2>Payment details</h2>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+    
+    
+    <!--Conditional Container Component-->
+<!--Loop through conditions and add the text from the textfield and a parsy=
+s for every textfield added except for the last one-->
+<div class=3D"cmp-conditional">
+    <!--Conditional statement-->
+    
+    
+        
+
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"cmp-contentfragment__element cmp-contentfragment__element=
+--main">
+        
+
+        
+        
+        
+        <p>You have secured your reservation by deposit,=C2=A0prepayment in=
+voice will be provided via a separate email.</p>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+
+    
+
+    <!--Conditional statement-->
+    
+    
+</div>
+
+    
+
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+    
+</div>
+
+</div>
+
+
+    
+    
+    
+
+    
+    
+
+    
+
+
+
+<div class=3D"xf-content-height">
+    
+
+
+<div class=3D"aem-Grid aem-Grid--12 aem-Grid--default--12 ">
+    
+    <table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-si=
+ze-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:co=
+llapse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"580px" class=3D"responsive-table" style=3D"-webkit-text-si=
+ze-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rsp=
+ace:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" valign=3D"top" style=3D"padding-right: 10px;padding-left: 10px; paddin=
+g-top:0px;">
+                                                
+
+
+
+
+    
+    
+    
+
+    
+        <p></p>
+
+    
+
+
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+    
+</div>
+
+</div>
+
+
+    
+    
+    
+
+    
+    
+
+    
+
+
+
+<div class=3D"xf-content-height">
+    
+
+
+<div class=3D"aem-Grid aem-Grid--12 aem-Grid--default--12 ">
+    
+    <table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-si=
+ze-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:co=
+llapse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"580px" class=3D"responsive-table" style=3D"-webkit-text-si=
+ze-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rsp=
+ace:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" valign=3D"top" style=3D"padding-right: 10px; padding-left: 10px; paddi=
+ng-top: 10px">
+                                                
+
+
+
+
+    
+    
+    
+   <tr>
+
+            <td class=3D"innertable" align=3D"left" valign=3D"top" width=3D=
+"580px" height=3D"1" style=3D"background-color: #e0e0e0; border-collapse:co=
+llapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; mso-line-height-rule:=
+ exactly; line-height: 1px;"><!--[if gte mso 15]>&nbsp;<![endif]--></td><td=
+ width=3D"10" height=3D"1"></td>
+
+        </tr>
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+<table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspacing=
+=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-size-=
+adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:colla=
+pse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"580px" class=3D"responsive-table" style=3D"-webkit-text-si=
+ze-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rsp=
+ace:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" valign=3D"top" style=3D"padding-right: 10px; padding-left: 10px;">
+                                                
+
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"extras-title">
+        
+
+        
+        
+        
+        <p><b>Hotel details</b></p>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+<table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspacing=
+=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-size-=
+adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:colla=
+pse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"580" class=3D"responsive-table" style=3D"-webkit-text-size=
+-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspac=
+e:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" width=3D"280" valign=3D"top" style=3D"padding-right: 10px; padding-lef=
+t: 10px;">
+                                                
+
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"hotel-details">
+        
+
+        
+        
+        
+        <h2>London Marylebone</h2>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"hotel-details">
+        <div style=3D"font-family: Arial, sans-serif !important; font-size:=
+14px; line-height:21px; color: #333333;">
+        
+        
+        <table width=3D"320" height=3D"74" cellspacing=3D"0" cellpadding=3D=
+"0" border=3D"0">
+<tbody><tr><td width=3D"294" valign=3D"top" height=3D"42">Old Marylebone Ro=
+ad,   GB, NW1 5DZ</td>
+</tr></tbody></table>
+</div>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+
+                                            </td>
+                                            <td class=3D"cmp-horizontal-col=
+umn" width=3D"270" valign=3D"top" style=3D"padding-right: 10px; padding-lef=
+t: 10px;">
+                                                
+
+
+
+
+    
+    
+    
+
+<a href=3D"http://t.service.premierinn.com/r/=3Fid=3Dhe5c4e09,e32eb63,74b9d=
+fd&e=3DbWlkPTI0MDkzMDMxMyZDSUQ9RU1DX1RSX0Jvb2tpbmdfSHViQ29uZl9ub25lX25vbmVf=
+MjAyNTAzMjBfd2JnT3BlcmFfSFVCX0Jvb2tpbmdDb25mMDAxJnAxPS9lbmdsYW5kL2dyZWF0ZXI=
+tbG9uZG9uL2xvbmRvbi9odWItbG9uZG9uLW1hcnlsZWJvbmU&s=3D646-NWanlBTUAtl5SHz1M7=
+Eld33JlvWbDvTsE8RtpbU"><img src=3D"https://www.premierinn.com/content/dam/h=
+ub/hotelimages/LONMAR/hub-london-marylebone-exterior.jpg" alt=3D"Hotel Imag=
+e" style=3D"" width=3D"260">
+</a>
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+<table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspacing=
+=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-size-=
+adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:colla=
+pse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"580px" class=3D"responsive-table" style=3D"-webkit-text-si=
+ze-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rsp=
+ace:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" valign=3D"top" style=3D"padding-right: 10px; padding-left: 10px;">
+                                                
+
+
+
+
+    
+    
+    
+<p style=3D "font-family: Arial, sans-serif !important; font-size:14px; lin=
+e-height:21px; color: #000000;">Telephone: 
+
++44300 373 0325<br> 
+Email: <a href=3D"mailto:marylebone.hub@whitbread.com" target=3D"_blank" _l=
+abel=3D"Help_Email" style=3D"color:#511E62; text-decoration: underline;">ma=
+rylebone.hub@whitbread.com</a></p>
+
+
+    
+    
+    
+<p style=3D "font-family: Arial, sans-serif !important; font-size:14px; lin=
+e-height:21px; color: #000000;">Calls to 0871 numbers cost 13p per minute +=
+ network extras. Calls to 0333 numbers are charged at the national rate.</p=
+>
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+    
+</div>
+
+</div>
+
+
+    
+    
+    
+
+    
+    
+
+    
+
+
+
+<div class=3D"xf-content-height">
+    
+
+
+<div class=3D"aem-Grid aem-Grid--12 aem-Grid--default--12 ">
+    
+    <table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-si=
+ze-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:co=
+llapse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"580px" class=3D"responsive-table" style=3D"-webkit-text-si=
+ze-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rsp=
+ace:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" valign=3D"top" style=3D"padding-right: 10px; padding-left:10px;">
+                                                
+
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"extras-title">
+        <div style=3D"font-family: Arial, Helvetica, sans-serif; color:#333=
+333; font-size:16px;">
+        
+        
+        <p><b>How to find us</b></p>
+</div>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+    
+    
+    
+
+    
+        <p></p>
+
+    
+
+
+
+
+    
+    
+    
+ <div style=3D"font-family: Arial, sans-serif !important; padding: 0px; mar=
+gin: 0px; line-height: 8px; height: 8px!important; mso-line-height-rule:exa=
+ctly;">&nbsp;</div>
+<p style=3D"mso-line-height-rule:exactly; font-family: font-family: Arial, =
+sans-serif !important; padding: 0px; margin: 0px; font-size: 14px; font-wei=
+ght: normal; color: #58595b; line-height: 21px; vertical-align: bottom">
+Click on <a href=3D"https://what3words.com/talent.actors.ideal" target=3D"_=
+blank" style=3D"font-size: 13px; font-weight: bold; color: #511e62; font-fa=
+mily: Arial, sans-serif !important; ">///talent.actors.ideal</a> to see exa=
+ctly where our hotel reception is with <strong>What 3 Words</strong>.</p>
+
+
+
+    
+    
+    
+ <div style=3D"font-family: Arial, Helvetica, sans-serif; padding: 0px; mar=
+gin: 0px; line-height: 8px; height: 8px!important; mso-line-height-rule:exa=
+ctly;">&nbsp;</div><p style=3D"mso-line-height-rule:exactly; font-family: A=
+rial, Helvetica, sans-serif; padding: 0px; margin: 0px; font-size: 14px; fo=
+nt-weight: normal; color: #58595b; line-height: 21px;">
+Driving=3F Use <strong>NW1 5DZ</strong> in your sat nav</p>
+
+
+    
+    
+    
+
+    
+        <p></p>
+
+    
+
+
+
+
+    
+    
+    
+
+    
+    
+        
+    
+        
+    <div class=3D"cmp-contentfragment__element cmp-contentfragment__element=
+--main">
+        <div style=3D" color: #58595b; line-height: 21px;  font-family: Ari=
+al, Helvetica, sans-serif; font-size:14px; ">
+        
+        
+        <p><b>Directions<br />
+ </b><p>Start on the A501 =E2=80=93heading towards Marylebone.</p>
+<p>Continue on the A501, following the signs towards Marylebone and Edgware=
+ Road.</p>
+<p>As you approach Marylebone, turn left onto Great Portland Street (just b=
+efore you reach the Regent=E2=80=99s Park area).</p>
+<p>Continue straight along Great Portland Street, which becomes Marylebone =
+Road. This road will lead you directly towards Marylebone Station.</p>
+<p>From Marylebone Road, turn left onto Melcombe Street.</p>
+<p>Arrive at Hub by Premier Inn London Marylebone =E2=80=93 The hotel is lo=
+cated on Melcombe Street, just a short distance from Marylebone Station</p>
+=C2=A0</p>
+</div>
+
+        
+    </div>
+
+    
+
+    
+
+
+    
+
+
+
+    
+    
+    
+
+    
+        <p></p>
+
+    
+
+
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+    
+</div>
+
+</div>
+
+
+    
+    
+    <table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-si=
+ze-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:co=
+llapse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"580" class=3D"responsive-table" style=3D"-webkit-text-size=
+-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspac=
+e:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" valign=3D"top">
+                                                
+
+
+
+
+    
+    
+    
+
+    
+    
+
+    
+
+
+
+<div class=3D"xf-content-height">
+    
+
+
+<div class=3D"aem-Grid aem-Grid--12 aem-Grid--default--12 ">
+    
+    <table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"100%" style=3D"-webkit-text-size-adjust:100%;-ms-text-si=
+ze-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;border-collapse:co=
+llapse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"left" cellpadding=3D"0" cellspacin=
+g=3D"0" width=3D"580px" class=3D"responsive-table" style=3D"-webkit-text-si=
+ze-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rsp=
+ace:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" valign=3D"top" style=3D"padding: 10px; ">
+                                                
+
+
+
+
+    
+    
+    
+
+    
+        <p></p>
+
+    
+
+
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+<div class=3D"cq-placeholder " data-emptytext=3D"Placeholder for a deleted =
+inherited Component"></div>
+
+<div class=3D"cq-placeholder " data-emptytext=3D"Placeholder for a deleted =
+inherited Component"></div>
+
+    
+</div>
+
+</div>
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+
+    
+    
+    
+
+    
+    
+
+    
+
+
+
+<div class=3D"xf-content-height">
+    
+
+
+<div class=3D"aem-Grid aem-Grid--12 aem-Grid--default--12 ">
+    
+    
+  <table bgcolor=3D"#FFFFFF" cellspacing=3D"0" cellpadding=3D"0" border=3D"=
+0" width=3D"100%" style=3D"width: 100% !important;">
+        <tr>
+            <td bgcolor=3D"#e0e0e0" align=3D"left" valign=3D"top" width=3D"=
+600px" height=3D"1" style=3D"background-color: #e0e0e0; border-collapse:col=
+lapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; mso-line-height-rule: =
+exactly; line-height: 1px;"><!--[if gte mso 15]>&nbsp;<![endif]--></td>
+        </tr>
+    </table>
+<table bgcolor=3D"#ffffff" border=3D"0" cellpadding=3D"0" cellspacing=3D"0"=
+ width=3D"100%" role=3D"presentation">
+<tr>
+<td width=3D"100%" align=3D"center" style=3D"padding: 0px;">
+<table width=3D"600" border=3D"0" align=3D"center" cellpadding=3D"0" cellsp=
+acing=3D"0" bgcolor=3D"#ffffff" class=3D"full-width"  style=3D"max-width:60=
+0px; width:600px;" role=3D"presentation">
+<tr>
+<td valign=3D"top">
+<table class=3D"full-width" width=3D"600" cellspacing=3D"0" cellpadding=3D"=
+0" border=3D"0" bgcolor=3D"#ffffff" align=3D"center" role=3D"presentation" =
+style=3D"max-width:600px; width:600px;">
+<tr>
+<td colspan=3D"7" bgcolor=3D"#FFFFFF" height=3D"12" style=3D"line-height: 5=
+px; font-size:5px;"><span style=3D"line-height: 12px; font-size: 5px;">&nbs=
+p;</span></td>
+=09</tr>
+=09<tr>
+=09=09<td width=3D"10">&nbsp;</td>
+=09=09<td class=3D"footer-links" width=3D"140" valign=3D"middle" style=3D"w=
+idth: 140px;"> 
+=09=09<div style=3D"font-family: Arial, Helvetica, sans-serif; padding: 0px=
+; margin: 0px; font-size: 14px; font-weight: normal; color: #333333; line-h=
+eight: 20px; text-align: center;"> <a href=3D"http://t.service.premierinn.c=
+om/r/=3Fid=3Dhe5c4e09,e32eb63,74b9dfe&e=3DbWlkPTI0MDkzMDMxMyZDSUQ9RU1DX1RSX=
+0Jvb2tpbmdfSHViQ29uZl9ub25lX25vbmVfMjAyNTAzMjBfd2JnT3BlcmFfSFVCX0Jvb2tpbmdD=
+b25mMDAx&s=3DHgSzPEpLA38Z3hWyoRwVIMA_lnLTsGm9zoNgRcD1spo" target=3D"_blank"=
+ style=3D"font-size: 14px; font-weight: normal; color: #333333; text-decora=
+tion: none;" _label=3D"contact">=09=09=09Contact us</a></div></td> 
+=09=09=09
+=09<td class=3D"footer-links" width=3D"160" valign=3D"middle" style=3D"widt=
+h: 160px;"> 
+=09=09<div style=3D"font-family: Arial, Helvetica, sans-serif; padding: 0px=
+; margin: 0px; font-size: 14px; font-weight: normal; color: #333333; line-h=
+eight: 20px; text-align: center;">
+=09=09  <a href=3D"https://www.premierinn.com/gb/en/terms/booking-terms-and=
+-conditions.html" target=3D"_blank" style=3D"font-size: 14px; font-weight: =
+normal; color: #333333; text-decoration: none;" _label=3D"Terms">Terms and =
+conditions</a></div></td>
+=09=09
+=09<td class=3D"footer-links" width=3D"120" valign=3D"middle" style=3D"widt=
+h: 120px;"> 
+=09=09<div style=3D"font-family: Arial, Helvetica, sans-serif; padding: 0px=
+; margin: 0px; font-size: 14px; font-weight: normal; color: #333333; line-h=
+eight: 20px; text-align: center;"><a href=3D"http://t.service.premierinn.co=
+m/r/=3Fid=3Dhe5c4e09,e32eb63,74b9dff&e=3DbWlkPTI0MDkzMDMxMyZDSUQ9RU1DX1RSX0=
+Jvb2tpbmdfSHViQ29uZl9ub25lX25vbmVfMjAyNTAzMjBfd2JnT3BlcmFfSFVCX0Jvb2tpbmdDb=
+25mMDAx&s=3Dxc69FxiJ8M4e84gesYdznAyf55cilxa2xU_QlmFZ0yw" target=3D"_blank" =
+style=3D"font-size: 14px; font-weight: normal; color: #333333; text-decorat=
+ion: none;" _label=3D"privacy">Privacy notice</a></div></td>
+=09=09
+=09=09<td class=3D"footer-links" width=3D"130" valign=3D"middle" style=3D"w=
+idth: 130px;"> 
+=09=09<div style=3D"font-family: Arial, Helvetica, sans-serif; padding: 0px=
+; margin: 0px; font-size: 14px; font-weight: normal; color: #333333; line-h=
+eight: 20px; text-align: center;"><a href=3D"http://t.service.premierinn.co=
+m/r/=3Fid=3Dhe5c4e09,e32eb63,74b9e00&e=3DbWlkPTI0MDkzMDMxMyZDSUQ9RU1DX1RSX0=
+Jvb2tpbmdfSHViQ29uZl9ub25lX25vbmVfMjAyNTAzMjBfd2JnT3BlcmFfSFVCX0Jvb2tpbmdDb=
+25mMDAx&s=3D3VFyFncs6FC-n9X5S9G5VkNx5jq9cpGEtwYr0h4wJzw" target=3D"_blank" =
+style=3D"font-size: 14px; font-weight: normal; color: #333333; text-decorat=
+ion: none;" _label=3D"cookies">Cookies notice</a></div></td>
+=09=09<td width=3D"10">&nbsp;</td>
+=09</tr>
+<tr>
+<td colspan=3D"7" bgcolor=3D"#FFFFFF" height=3D"12" style=3D"line-height: 5=
+px; font-size:5px;"><span style=3D"line-height: 12px; font-size: 5px;">&nbs=
+p;</span></td>
+=09</tr>
+</table></td></tr>
+
+
+=09<!-- footer terms --> 
+=09</table></td></tr></table>
+  <table bgcolor=3D"#FFFFFF" cellspacing=3D"0" cellpadding=3D"0" border=3D"=
+0" width=3D"100%" style=3D"width: 100% !important;">
+        <tr>
+            <td align=3D"left" valign=3D"top" width=3D"600px" height=3D"1" =
+style=3D"background-color: #e0e0e0; border-collapse:collapse; mso-table-lsp=
+ace: 0pt; mso-table-rspace: 0pt; mso-line-height-rule: exactly; line-height=
+: 1px;"><!--[if gte mso 15]>&nbsp;<![endif]--></td>
+        </tr>
+    </table>
+<table class=3D"cmp-horizontal" border=3D"0" cellpadding=3D"0" cellspacing=
+=3D"0" width=3D"100%" bgcolor=3D"#FFFFFF" style=3D"-webkit-text-size-adjust=
+:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;b=
+order-collapse:collapse !important;">
+    <tr>
+        <!-- LEFT AND RIGHT GUTTER -->
+        <td style=3D"padding: 0px 0px 0px 0px;-webkit-text-size-adjust:100%=
+;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+            <table border=3D"0" align=3D"center" cellpadding=3D"0" cellspac=
+ing=3D"0" width=3D"600" class=3D"responsive-table" style=3D"-webkit-text-si=
+ze-adjust:100%;-ms-text-size-adjust:100%;mso-table-lspace:0pt;mso-table-rsp=
+ace:0pt;border-collapse:collapse !important; width:600px;">
+
+                                        <!--Show one column by default and =
+display more if configured-->
+                                        <tr>
+                                            <td class=3D"cmp-horizontal-col=
+umn" valign=3D"top" style=3D"font-family: Arial, sans-serif; padding-top: 1=
+0px; padding-bottom: 10px;margin: 0px; font-size: 13px; font-weight: normal=
+; color: #333333; line-height: 20px; text-align: left;">
+                                                
+
+
+
+
+    
+    
+    
+
+    
+        <p>This is a service message.=C2=A0</p>
+
+    
+
+
+
+
+    
+    
+    <!--Conditional Container Component-->
+<!--Loop through conditions and add the text from the textfield and a parsy=
+s for every textfield added except for the last one-->
+<div class=3D"cmp-conditional">
+    <!--Conditional statement-->
+    
+    
+        
+
+
+
+
+    
+    
+    
+
+    
+        <p>The sender of this e-mail is a member of the Whitbread group of =
+companies, the ultimate parent of which is Whitbread PLC (company number 41=
+20344). The registered office address of Whitbread PLC and all of the above=
+-mentioned principal operating subsidiaries is Whitbread Court, Houghton Ha=
+ll Business Park, Porz Avenue, Dunstable LU5 5XE.</p>
+
+    
+
+
+
+
+
+    
+
+    <!--Conditional statement-->
+    
+    
+</div>
+
+    
+
+
+
+
+                                            </td>
+                                            
+                                            
+                                            
+                                            
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+  <table bgcolor=3D"#FFFFFF" cellspacing=3D"0" cellpadding=3D"0" border=3D"=
+0" width=3D"100%" style=3D"width: 100% !important;">
+        <tr>
+            <td bgcolor=3D"#e0e0e0" align=3D"left" valign=3D"top" width=3D"=
+600px" height=3D"1" style=3D"background-color: #e0e0e0; border-collapse:col=
+lapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; mso-line-height-rule: =
+exactly; line-height: 1px;"><!--[if gte mso 15]>&nbsp;<![endif]--></td>
+        </tr>
+    </table>
+<table bgcolor=3D"#ffffff" border=3D"0" cellpadding=3D"0" cellspacing=3D"0"=
+ width=3D"100%" role=3D"presentation">
+<tr>
+<td width=3D"100%" align=3D"center" style=3D"padding: 0px;">
+<table width=3D"600" border=3D"0" align=3D"center" cellpadding=3D"0" cellsp=
+acing=3D"0" bgcolor=3D"#ffffff" class=3D"full-width"  style=3D"max-width:60=
+0px; width:600px;" role=3D"presentation">
+<tr>
+<td valign=3D"top">
+<table class=3D"full-width" width=3D"600" cellspacing=3D"0" cellpadding=3D"=
+0" border=3D"0" bgcolor=3D"#ffffff" align=3D"center" role=3D"presentation" =
+style=3D"max-width:600px; width:600px;">
+<tr>
+<td colspan=3D"7" bgcolor=3D"#FFFFFF" height=3D"12" style=3D"line-height: 5=
+px; font-size:5px;"><span style=3D"line-height: 12px; font-size: 5px;">&nbs=
+p;</span></td>
+=09</tr>
+=09<tr>
+=09=09<td width=3D"10">&nbsp;</td>
+=09=09<td class=3D"footer-links" width=3D"140" valign=3D"middle" style=3D"w=
+idth: 140px;"> 
+=09=09<div style=3D"font-family: Arial, Helvetica, sans-serif; padding: 0px=
+; margin: 0px; font-size: 14px; font-weight: normal; color: #333333; line-h=
+eight: 20px; text-align: center;"> <a href=3D"http://t.service.premierinn.c=
+om/r/=3Fid=3Dhe5c4e09,e32eb63,74b9e01&e=3DbWlkPTI0MDkzMDMxMyZDSUQ9RU1DX1RSX=
+0Jvb2tpbmdfSHViQ29uZl9ub25lX25vbmVfMjAyNTAzMjBfd2JnT3BlcmFfSFVCX0Jvb2tpbmdD=
+b25mMDAx&s=3DMyxFjVNwMNYSFDUMYmmDsklH0BIRBEXuU-gOBX7TQUQ" target=3D"_blank"=
+ style=3D"font-size: 14px; font-weight: normal; color: #333333; text-decora=
+tion: none;" _label=3D"contact">=09=09=09Contact us</a></div></td> 
+=09=09=09
+=09<td class=3D"footer-links" width=3D"160" valign=3D"middle" style=3D"widt=
+h: 160px;"> 
+=09=09<div style=3D"font-family: Arial, Helvetica, sans-serif; padding: 0px=
+; margin: 0px; font-size: 14px; font-weight: normal; color: #333333; line-h=
+eight: 20px; text-align: center;">
+=09=09  <a href=3D"https://www.premierinn.com/gb/en/terms/booking-terms-and=
+-conditions.html" target=3D"_blank" style=3D"font-size: 14px; font-weight: =
+normal; color: #333333; text-decoration: none;" _label=3D"Terms">Terms and =
+conditions</a></div></td>
+=09=09
+=09<td class=3D"footer-links" width=3D"120" valign=3D"middle" style=3D"widt=
+h: 120px;"> 
+=09=09<div style=3D"font-family: Arial, Helvetica, sans-serif; padding: 0px=
+; margin: 0px; font-size: 14px; font-weight: normal; color: #333333; line-h=
+eight: 20px; text-align: center;"><a href=3D"http://t.service.premierinn.co=
+m/r/=3Fid=3Dhe5c4e09,e32eb63,74b9e02&e=3DbWlkPTI0MDkzMDMxMyZDSUQ9RU1DX1RSX0=
+Jvb2tpbmdfSHViQ29uZl9ub25lX25vbmVfMjAyNTAzMjBfd2JnT3BlcmFfSFVCX0Jvb2tpbmdDb=
+25mMDAx&s=3DeLugiOgwUX24PuxISa0I4y1u8VwvjQq2pcpoaFmKp28" target=3D"_blank" =
+style=3D"font-size: 14px; font-weight: normal; color: #333333; text-decorat=
+ion: none;" _label=3D"privacy">Privacy notice</a></div></td>
+=09=09
+=09=09<td class=3D"footer-links" width=3D"130" valign=3D"middle" style=3D"w=
+idth: 130px;"> 
+=09=09<div style=3D"font-family: Arial, Helvetica, sans-serif; padding: 0px=
+; margin: 0px; font-size: 14px; font-weight: normal; color: #333333; line-h=
+eight: 20px; text-align: center;"><a href=3D"http://t.service.premierinn.co=
+m/r/=3Fid=3Dhe5c4e09,e32eb63,74b9e03&e=3DbWlkPTI0MDkzMDMxMyZDSUQ9RU1DX1RSX0=
+Jvb2tpbmdfSHViQ29uZl9ub25lX25vbmVfMjAyNTAzMjBfd2JnT3BlcmFfSFVCX0Jvb2tpbmdDb=
+25mMDAx&s=3DceifRUE2Epvjajbsx6thc_BMbCnxYBkLIm23GYCgH7w" target=3D"_blank" =
+style=3D"font-size: 14px; font-weight: normal; color: #333333; text-decorat=
+ion: none;" _label=3D"cookies">Cookies notice</a></div></td>
+=09=09<td width=3D"10">&nbsp;</td>
+=09</tr>
+<tr>
+<td colspan=3D"7" bgcolor=3D"#FFFFFF" height=3D"12" style=3D"line-height: 5=
+px; font-size:5px;"><span style=3D"line-height: 12px; font-size: 5px;">&nbs=
+p;</span></td>
+=09</tr>
+</table></td></tr>
+
+
+=09<!-- footer terms --> 
+=09</table></td></tr></table>
+  <table bgcolor=3D"#FFFFFF" cellspacing=3D"0" cellpadding=3D"0" border=3D"=
+0" width=3D"100%" style=3D"width: 100% !important;">
+        <tr>
+            <td align=3D"left" valign=3D"top" width=3D"600px" height=3D"1" =
+style=3D"background-color: #e0e0e0; border-collapse:collapse; mso-table-lsp=
+ace: 0pt; mso-table-rspace: 0pt; mso-line-height-rule: exactly; line-height=
+: 1px;"><!--[if gte mso 15]>&nbsp;<![endif]--></td>
+        </tr>
+    </table>
+
+    
+</div>
+
+</div>
+
+
+
+<img height=3D'0' width=3D'0' alt=3D'' src=3D'http://t.service.premierinn.c=
+om/r/=3Fid=3Dhe5c4e09,e32eb63,1'/></body>
+
+</html>
+

@@ -6,10 +6,8 @@ from app.llm.extractors import llm_extract_email
 from app.models.booking import Booking, ExtractionResult
 
 
-def _extract_html_from_email(raw_email: str) -> str:
+def _extract_html_from_email(msg) -> str:
     """Return the HTML body if present; fallback to raw raw_email text."""
-    msg = message_from_string(raw_email, policy=policy.default)
-
     if msg.is_multipart():
         for part in msg.walk():
             if part.get_content_type() == "text/html":
@@ -23,18 +21,14 @@ def _extract_html_from_email(raw_email: str) -> str:
             return payload.decode(charset, errors="replace")
 
     # Fallback – use the original raw email
-    return raw_email
+    return msg
 
 
-def parse_email(raw_email: str) -> Booking:
-    """
-    High-level parser:
-    - Extract HTML body from raw email
-    - Call LLM to extract structured booking info
-    - Return a Booking instance
+def parse_email(raw_bytes: bytes) -> Booking:
+    from email import message_from_bytes, policy
 
-    Raises ValueError if this is not a booking email.
-    """
+    raw_email = message_from_bytes(raw_bytes, policy=policy.default)
+
     html = _extract_html_from_email(raw_email)
     result: ExtractionResult = llm_extract_email(html)
 
