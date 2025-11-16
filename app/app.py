@@ -3,6 +3,7 @@ import os
 import boto3
 from botocore.exceptions import ClientError
 from app.parsers.booking import parse_email
+import logfire
 
 s3 = boto3.client("s3")
 
@@ -29,10 +30,7 @@ def store_result(parsed: dict):
 
 
 def lambda_handler(event, context):
-    """
-    S3 event -> download email -> parse -> store result.
-    """
-
+    logfire.configure()
     # S3 can batch multiple records; handle them in a loop
     for record in event.get("Records", []):
         event_source = record.get("eventSource") or record.get("EventSource")
