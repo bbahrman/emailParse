@@ -3,11 +3,13 @@ from app.models.booking import ExtractionResult, get_extract_booking_tool
 from app.llm.client import client
 import logfire
 
+# Configure logfire once at module level
+logfire.configure()
+logfire.instrument_openai()
+
 
 def llm_extract_email(email_text: str) -> ExtractionResult:
     tool = get_extract_booking_tool()
-    logfire.configure()
-    logfire.instrument_openai()
     prompt = """
 You are an email parsing assistant.
 

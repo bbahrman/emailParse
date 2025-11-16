@@ -5,6 +5,9 @@ from botocore.exceptions import ClientError
 from app.parsers.booking import parse_email
 import logfire
 
+# Configure logfire once at module level
+logfire.configure()
+
 s3 = boto3.client("s3")
 
 
@@ -30,7 +33,10 @@ def store_result(parsed: dict):
 
 
 def lambda_handler(event, context):
-    logfire.configure()
+    """
+    S3 event -> download email -> parse -> store result.
+    """
+    logfire.info("Lambda handler invoked", event_records=len(event.get("Records", [])))
     # S3 can batch multiple records; handle them in a loop
     for record in event.get("Records", []):
         event_source = record.get("eventSource") or record.get("EventSource")
@@ -49,11 +55,15 @@ def lambda_handler(event, context):
         try:
             obj = s3.get_object(Bucket=bucket_name, Key=object_key)
             raw_bytes = obj["Body"].read()
+            logfire.info("Fetched email from S3", bucket=bucket_name, key=object_key, size=len(raw_bytes))
         except ClientError as e:
+            logfire.error("Error fetching object from S3", bucket=bucket_name, key=object_key, error=str(e))
             print(f"Error fetching object {bucket_name}/{object_key}: {e}")
             continue
 
+        logfire.info("Parsing email", bucket=bucket_name, key=object_key)
         parsed = parse_email(raw_bytes)
+        logfire.info("Email parsed successfully", booking_id=parsed.get("id"), confirmation=parsed.get("confirmation"))
 
         # You might want to embed where this came from:
         parsed.setdefault("source_bucket", bucket_name)
