@@ -4,6 +4,8 @@ from __future__ import annotations
 from email import message_from_string, policy
 from app.llm.extractors import llm_extract_email
 from app.models.booking import Booking, ExtractionResult
+import logfire
+logfire.instrument_pydantic()  # Defaults to record='all'
 
 
 def _extract_html_from_email(msg) -> str:

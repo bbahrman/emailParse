@@ -89,3 +89,6 @@ def lambda_handler(event, context):
             continue
 
     return {"statusCode": 200, "body": "OK"}
+
+
+logfire.instrument_aws_lambda(lambda_handler)

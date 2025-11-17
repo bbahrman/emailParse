@@ -2,6 +2,8 @@ import decimal
 from datetime import date
 from pydantic import BaseModel, HttpUrl
 from typing import Optional
+import logfire
+logfire.instrument_pydantic()  # Defaults to record='all'
 
 
 class Booking(BaseModel):
