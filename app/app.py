@@ -65,7 +65,7 @@ def lambda_handler(event, context):
         booking = parse_email(raw_bytes)
         
         # Convert Pydantic model to dict
-        parsed = booking.model_dump()
+        parsed = booking.model_dump(mode="json")
         
         logfire.info("Email parsed successfully", booking_id=parsed.get("id"), confirmation=parsed.get("confirmation"))
 
