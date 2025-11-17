@@ -62,21 +62,30 @@ def lambda_handler(event, context):
             continue
 
         logfire.info("Parsing email", bucket=bucket_name, key=object_key)
-        booking = parse_email(raw_bytes)
-        
-        # Convert Pydantic model to dict
-        parsed = booking.model_dump(mode="json")
-        
-        logfire.info("Email parsed successfully", booking_id=parsed.get("id"), confirmation=parsed.get("confirmation"))
+        try:
+            booking = parse_email(raw_bytes)
+            
+            # Convert Pydantic model to dict
+            parsed = booking.model_dump(mode="json")
+            
+            logfire.info("Email parsed successfully", booking_id=parsed.get("id"), confirmation=parsed.get("confirmation"))
 
-        # You might want to embed where this came from:
-        parsed.setdefault("source_bucket", bucket_name)
-        parsed.setdefault("source_key", object_key)
+            # You might want to embed where this came from:
+            parsed.setdefault("source_bucket", bucket_name)
+            parsed.setdefault("source_key", object_key)
 
-        # Ensure you have some stable identifier to use as filename / DB key
-        if "id" not in parsed:
-            parsed["id"] = object_key.replace("/", "_")
+            # Ensure you have some stable identifier to use as filename / DB key
+            if "id" not in parsed:
+                parsed["id"] = object_key.replace("/", "_")
 
-        store_result(parsed)
+            store_result(parsed)
+        except ValueError as e:
+            # Email is not a booking (e.g., marketing email) - log and continue
+            logfire.info("Skipping non-booking email", bucket=bucket_name, key=object_key, reason=str(e))
+            continue
+        except Exception as e:
+            # Other parsing errors - log and continue
+            logfire.error("Error parsing email", bucket=bucket_name, key=object_key, error=str(e))
+            continue
 
     return {"statusCode": 200, "body": "OK"}
