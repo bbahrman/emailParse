@@ -1,2 +1,4 @@
 /.idea
 .env.op
+/.history
+/.aws-sam
