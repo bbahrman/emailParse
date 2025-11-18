@@ -9,7 +9,6 @@ from datetime import datetime
 # Configure logfire once at module level
 logfire.configure()
 logfire.instrument_pydantic()
-logfire.instrument_boto3()  # Instrument boto3 to trace DynamoDB calls
 
 s3 = boto3.client("s3")
 dynamodb = boto3.resource("dynamodb")
