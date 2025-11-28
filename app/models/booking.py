@@ -5,7 +5,8 @@ from typing import Optional
 
 
 class Booking(BaseModel):
-    name: str
+    guest_name: str
+    provider_name: str
     confirmation: str
     check_in_date: str
     check_out_date: str
@@ -23,6 +24,11 @@ class Booking(BaseModel):
     amount_paid: str
     amount_total: str
     room_type: str
+
+
+class BookingWithMeta(Booking):
+    source_key: str
+
 
 class ExtractionResult(BaseModel):
     kind: str

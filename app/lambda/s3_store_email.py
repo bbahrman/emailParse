@@ -4,6 +4,7 @@ from botocore.exceptions import ClientError
 from app.parsers.booking import parse_email
 import logfire
 from datetime import datetime
+from app.models.booking import BookingWithMeta
 
 # Configure logfire once at module level
 logfire.configure()
@@ -13,22 +14,12 @@ s3 = boto3.client("s3")
 dynamodb = boto3.resource("dynamodb")
 
 
-def store_result(parsed: dict):
-    """
-    Store booking in DynamoDB bookings table.
-    Uses 'confirmation' as the primary key.
-    """
+def store_result(parsed: BookingWithMeta):
     table_name = os.environ.get("BOOKINGS_TABLE_NAME", "bookings")
     table = dynamodb.Table(table_name)
     
-    # Ensure confirmation exists (required for primary key)
-    confirmation = parsed.get("confirmation")
-    if not confirmation:
-        confirmation = parsed.get("id") or parsed.get("source_key", "unknown").replace("/", "_")
-        parsed["confirmation"] = confirmation
-    
     # Convert HttpUrl to string if present
-    website = str(parsed.get("website", "")) if parsed.get("website") else None
+    website = str(parsed.website) if parsed.website else None
     
     # Prepare DynamoDB item (upsert)
     now = datetime.utcnow().isoformat()
@@ -37,15 +28,16 @@ def store_result(parsed: dict):
     # This ensures created_at is only set on first insert
     try:
         logfire.info("Attempting to store booking in DynamoDB", 
-                    confirmation=confirmation,
+                    confirmation=parsed.confirmation,
                     table_name=table_name,
-                    booking_name=parsed.get("name"))
+                    provider_name=parsed.provider_name)
         
-        with logfire.span("dynamodb_update_item", table=table_name, confirmation=confirmation):
+        with logfire.span("dynamodb_update_item", table=table_name, confirmation=parsed.confirmation):
             response = table.update_item(
-                Key={"confirmation": confirmation},
+                Key={"confirmation": parsed.confirmation},
                 UpdateExpression="""
-                    SET #name = :name,
+                    SET guest_name = :guest_name,
+                        provider_name = :provider_name,
                         #address = :address,
                         check_in_date = :check_in_date,
                         check_out_date = :check_out_date,
@@ -62,35 +54,33 @@ def store_result(parsed: dict):
                         amount_paid = :amount_paid,
                         amount_total = :amount_total,
                         room_type = :room_type,
-                        source_bucket = :source_bucket,
                         source_key = :source_key,
                         updated_at = :updated_at,
                         created_at = if_not_exists(created_at, :created_at)
                 """,
                 ExpressionAttributeNames={
-                    "#name": "name",
                     "#address": "address"
                 },
                 ExpressionAttributeValues={
-                    ":name": parsed.get("name"),
-                    ":check_in_date": parsed.get("check_in_date"),
-                    ":check_out_date": parsed.get("check_out_date"),
-                    ":check_in_time": parsed.get("check_in_time"),
-                    ":check_out_time": parsed.get("check_out_time"),
-                    ":early_check_in_time": parsed.get("early_check_in_time"),
-                    ":early_check_in_cost": parsed.get("early_check_in_cost"),
-                    ":breakfast_included": parsed.get("breakfast_included", False),
-                    ":cancellation_terms": parsed.get("cancellation_terms"),
-                    ":address": parsed.get("address"),
-                    ":city": parsed.get("city"),
-                    ":booking_date": parsed.get("booking_date"),
-                    ":what3words": parsed.get("what3words"),
+                    ":guest_name": parsed.guest_name,
+                    ":provider_name": parsed.provider_name,
+                    ":check_in_date": parsed.check_in_date,
+                    ":check_out_date": parsed.check_out_date,
+                    ":check_in_time": parsed.check_in_time,
+                    ":check_out_time": parsed.check_out_time,
+                    ":early_check_in_time": parsed.early_check_in_time,
+                    ":early_check_in_cost": parsed.early_check_in_cost,
+                    ":breakfast_included": parsed.breakfast_included,
+                    ":cancellation_terms": parsed.cancellation_terms,
+                    ":address": parsed.address,
+                    ":city": parsed.city,
+                    ":booking_date": parsed.booking_date,
+                    ":what3words": parsed.what3words,
                     ":website": website,
-                    ":amount_paid": parsed.get("amount_paid"),
-                    ":amount_total": parsed.get("amount_total"),
-                    ":room_type": parsed.get("room_type"),
-                    ":source_bucket": parsed.get("source_bucket"),
-                    ":source_key": parsed.get("source_key"),
+                    ":amount_paid": parsed.amount_paid,
+                    ":amount_total": parsed.amount_total,
+                    ":room_type": parsed.room_type,
+                    ":source_key": parsed.source_key,
                     ":updated_at": now,
                     ":created_at": now
                 },
@@ -98,15 +88,15 @@ def store_result(parsed: dict):
             )
             
             logfire.info("DynamoDB update_item response", 
-                        confirmation=confirmation,
+                        confirmation=parsed.confirmation,
                         response_metadata=response.get("ResponseMetadata", {}).get("HTTPStatusCode"),
                         item=response.get("Attributes", {}))
         
         logfire.info("Booking successfully stored in DynamoDB", 
-                    confirmation=confirmation,
-                    booking_name=parsed.get("name"),
+                    confirmation=parsed.confirmation,
+                    provider_name=parsed.provider_name,
                     table_name=table_name)
-        print(f"✓ Stored booking in DynamoDB: {confirmation}", flush=True)
+        print(f"✓ Stored booking in DynamoDB: {parsed.confirmation}", flush=True)
         
     except ClientError as e:
         error_code = e.response.get("Error", {}).get("Code", "Unknown")
@@ -114,7 +104,7 @@ def store_result(parsed: dict):
         logfire.error("DynamoDB ClientError storing booking", 
                      error_code=error_code,
                      error_message=error_message,
-                     confirmation=confirmation,
+                     confirmation=parsed.confirmation,
                      table_name=table_name)
         print(f"✗ DynamoDB error: {error_code} - {error_message}", flush=True)
         raise
@@ -122,7 +112,7 @@ def store_result(parsed: dict):
         logfire.error("Unexpected error storing booking in DynamoDB", 
                      error=str(e),
                      error_type=type(e).__name__,
-                     confirmation=confirmation,
+                     confirmation=parsed.confirmation,
                      table_name=table_name)
         print(f"✗ Error storing booking: {e}", flush=True)
         import traceback
@@ -157,18 +147,12 @@ def lambda_handler(event, context):
                 with logfire.span("parse_email", bucket=bucket_name, key=object_key):
                     try:
                         # call openAI to parse email
-                        booking = parse_email(raw_bytes)
-
-                        logfire.info("Email parsed successfully", booking_id=booking.get("id"), confirmation=booking.get("confirmation"))
-
-                        # You might want to embed where this came from:
-                        booking.setdefault("source_bucket", bucket_name)
-                        booking.setdefault("source_key", object_key)
-
-                        # Ensure you have some stable identifier to use as filename / DB key
-                        if "id" not in booking:
-                            booking["id"] = object_key.replace("/", "_")
-
+                        base_booking = parse_email(raw_bytes)
+                        booking = BookingWithMeta(
+                            **base_booking.model_dump(),
+                            source_key=object_key,
+                        )
+                        logfire.info("Email parsed successfully", confirmation=booking.confirmation)
                     except ValueError as e:
                         # Email is not a booking (e.g., marketing email) - log and continue
                         logfire.info("Skipping non-booking email", bucket=bucket_name, key=object_key, reason=str(e))
@@ -178,8 +162,8 @@ def lambda_handler(event, context):
                         logfire.error("Error parsing email", bucket=bucket_name, key=object_key, error=str(e))
                         continue
 
-                with logfire.span("store_result", booking_id=booking.get("id")):
-                    store_result(booking.model_dump(mode="json"))
+                with logfire.span("store_result"):
+                    store_result(booking)
 
         return {"statusCode": 200, "body": "OK"}
 
