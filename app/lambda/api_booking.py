@@ -47,6 +47,9 @@ def lambda_handler(event: Dict[str, Any], context) -> Dict[str, Any]:
                 return create_response(500, {'message': 'Internal Server Error'})
 
 
+logfire.instrument_aws_lambda(lambda_handler)
+
+
 def create_response(status_code: int, body: Dict[str, Any]) -> Dict[str, Any]:
     response = {
         'statusCode': status_code,

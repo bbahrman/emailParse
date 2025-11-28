@@ -1,4 +1,3 @@
-import json
 import os
 import boto3
 from botocore.exceptions import ClientError
@@ -132,67 +131,57 @@ def store_result(parsed: dict):
 
 
 def lambda_handler(event, context):
-    """
-    S3 event -> download email -> parse -> store result.
-    """
-    print(f"Lambda handler invoked - Records: {len(event.get('Records', []))}", flush=True)
-    logfire.info("Lambda handler invoked", event_records=len(event.get("Records", [])))
-    
-    # S3 can batch multiple records; handle them in a loop
-    for record in event.get("Records", []):
-        event_source = record.get("eventSource") or record.get("EventSource")
-        if event_source != "aws:s3":
-            # Ignore non-S3 events if any
-            continue
+    with logfire.span("lambda entry", endpoint="s3_parse_email", event=event):
+        logfire.info("Lambda handler invoked", event_records=len(event.get("Records", [])))
 
-        s3_info = record["s3"]
-        bucket_name = s3_info["bucket"]["name"]
-        object_key = s3_info["object"]["key"]
-
-        # S3 keys may be URL-encoded
-        from urllib.parse import unquote_plus
-        object_key = unquote_plus(object_key)
-
-        with logfire.span("process_email", bucket=bucket_name, key=object_key):
-            try:
-                obj = s3.get_object(Bucket=bucket_name, Key=object_key)
-                raw_bytes = obj["Body"].read()
-                logfire.info("Fetched email from S3", bucket=bucket_name, key=object_key, size=len(raw_bytes))
-            except ClientError as e:
-                logfire.error("Error fetching object from S3", bucket=bucket_name, key=object_key, error=str(e))
-                print(f"Error fetching object {bucket_name}/{object_key}: {e}")
+        # S3 can batch multiple records; handle them in a loop
+        for record in event.get("Records", []):
+            event_source = record.get("eventSource") or record.get("EventSource")
+            if event_source != "aws:s3":
+                # Ignore non-S3 events if any
                 continue
 
-            with logfire.span("parse_email", bucket=bucket_name, key=object_key):
+            s3_info = record["s3"]
+            bucket_name = s3_info["bucket"]["name"]
+            object_key = s3_info["object"]["key"]
+
+            with logfire.span("process_email", bucket=bucket_name, key=object_key):
                 try:
-                    booking = parse_email(raw_bytes)
-
-                    # Convert Pydantic model to dict
-                    parsed = booking.model_dump(mode="json")
-
-                    logfire.info("Email parsed successfully", booking_id=parsed.get("id"), confirmation=parsed.get("confirmation"))
-
-                    # You might want to embed where this came from:
-                    parsed.setdefault("source_bucket", bucket_name)
-                    parsed.setdefault("source_key", object_key)
-
-                    # Ensure you have some stable identifier to use as filename / DB key
-                    if "id" not in parsed:
-                        parsed["id"] = object_key.replace("/", "_")
-
-                except ValueError as e:
-                    # Email is not a booking (e.g., marketing email) - log and continue
-                    logfire.info("Skipping non-booking email", bucket=bucket_name, key=object_key, reason=str(e))
-                    continue
-                except Exception as e:
-                    # Other parsing errors - log and continue
-                    logfire.error("Error parsing email", bucket=bucket_name, key=object_key, error=str(e))
+                    obj = s3.get_object(Bucket=bucket_name, Key=object_key)
+                    raw_bytes = obj["Body"].read()
+                    logfire.info("Fetched email from S3", bucket=bucket_name, key=object_key, size=len(raw_bytes))
+                except ClientError as e:
+                    logfire.error("Error fetching object from S3", bucket=bucket_name, key=object_key, error=str(e))
                     continue
 
-            with logfire.span("store_result", booking_id=parsed.get("id")):
-                store_result(parsed)
+                with logfire.span("parse_email", bucket=bucket_name, key=object_key):
+                    try:
+                        # call openAI to parse email
+                        booking = parse_email(raw_bytes)
 
-    return {"statusCode": 200, "body": "OK"}
+                        logfire.info("Email parsed successfully", booking_id=booking.get("id"), confirmation=booking.get("confirmation"))
+
+                        # You might want to embed where this came from:
+                        booking.setdefault("source_bucket", bucket_name)
+                        booking.setdefault("source_key", object_key)
+
+                        # Ensure you have some stable identifier to use as filename / DB key
+                        if "id" not in booking:
+                            booking["id"] = object_key.replace("/", "_")
+
+                    except ValueError as e:
+                        # Email is not a booking (e.g., marketing email) - log and continue
+                        logfire.info("Skipping non-booking email", bucket=bucket_name, key=object_key, reason=str(e))
+                        continue
+                    except Exception as e:
+                        # Other parsing errors - log and continue
+                        logfire.error("Error parsing email", bucket=bucket_name, key=object_key, error=str(e))
+                        continue
+
+                with logfire.span("store_result", booking_id=booking.get("id")):
+                    store_result(booking.model_dump(mode="json"))
+
+        return {"statusCode": 200, "body": "OK"}
 
 
 logfire.instrument_aws_lambda(lambda_handler)

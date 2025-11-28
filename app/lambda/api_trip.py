@@ -9,5 +9,8 @@ def lambda_handler(event, context):
     my_lambda_function(foo, bar)
 
 
+logfire.instrument_aws_lambda(lambda_handler)
+
+
 def my_lambda_function(foo, bar):
     logfire.info('my_lambda_function entry', foo=foo, bar=bar)
