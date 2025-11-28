@@ -16,7 +16,7 @@ class Booking(BaseModel):
     early_check_in_cost: str
     breakfast_included: bool
     cancellation_terms: str
-    address: str
+    street_address: str
     city: str
     booking_date: str
     what3words: str

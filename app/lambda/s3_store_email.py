@@ -16,29 +16,10 @@ dynamodb = boto3.resource("dynamodb")
 
 def store_result(parsed: BookingWithMeta):
     table_name = os.environ.get("BOOKINGS_TABLE_NAME", "bookings")
-    table = dynamodb.Table(table_name)
-    booking_dict = parsed.model_dump(exclude_unset=True)
-    update_expression = build_update(booking_dict)
-    # Build parameters for update_item
-    update_params = {
-        "Key": {"confirmation": parsed.confirmation},
-        "UpdateExpression": update_expression,
-        "ReturnValues": "ALL_NEW"
-    }
-
-    # Use UpdateItem with SET for updated_at and SET if_not_exists for created_at
-    # This ensures created_at is only set on first insert
     try:
-        logfire.info(
-            "Attempting to store booking in DynamoDB",
-            confirmation=parsed.confirmation,
-            table_name=table_name,
-            provider_name=parsed.provider_name,
-        )
-        
         with logfire.span("dynamodb_update_item", table=table_name, confirmation=parsed.confirmation):
-            response = table.update_item(**update_params)
-            
+            response = update_table(parsed, {"confirmation": parsed.confirmation}, os.environ.get("BOOKINGS_TABLE_NAME", "bookings"))
+
             logfire.info(
                 "DynamoDB update_item response",
                 confirmation=parsed.confirmation,
@@ -47,7 +28,6 @@ def store_result(parsed: BookingWithMeta):
                 provider_name=parsed.provider_name,
                 table_name=table_name
             )
-        
     except ClientError as e:
         error_code = e.response.get("Error", {}).get("Code", "Unknown")
         error_message = e.response.get("Error", {}).get("Message", str(e))
@@ -69,7 +49,13 @@ def store_result(parsed: BookingWithMeta):
         raise
 
 
-def build_update(values_dict):
+def update_table(
+        model,
+        key_object,
+        table_name
+):
+    values_dict = model.model_dump(exclude_unset=True)
+    table = dynamodb.Table(table_name)
     # Prepare DynamoDB item (upsert)
     now = datetime.utcnow().isoformat()
 
@@ -85,12 +71,26 @@ def build_update(values_dict):
 
     # Dynamically process all fields from the model
     for field_name, field_value in values_dict.items():
+        if field_name == "website":
+            field_value = str(field_value)
+
+        if field_name in key_object:
+            continue
+
         update_parts.append(f"{field_name} = :{field_name}")
         expression_attribute_values[f":{field_name}"] = field_value
 
     # Build the update expression
     update_expression = "SET " + ", ".join(update_parts)
-    return update_expression
+
+    response = table.update_item(
+        Key=key_object,
+        UpdateExpression=update_expression,
+        ExpressionAttributeValues=expression_attribute_values,
+        ReturnValues="ALL_NEW"  # Return the updated item for verification
+    )
+
+    return response
 
 
 def lambda_handler(event, context):
