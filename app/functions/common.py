@@ -1,7 +1,9 @@
+import os
 import boto3
 from botocore.exceptions import ClientError
 from datetime import datetime
 import logfire
+from typing import Optional, Dict, Any
 
 dynamodb = boto3.resource("dynamodb")
 
@@ -78,4 +80,36 @@ def store_result(parsed, table_name, key):
                 table_name=table_name)
             import traceback
             print(traceback.format_exc(), flush=True)
+            raise
+
+
+def get_booking_by_confirmation(confirmation: str) -> Optional[Dict[str, Any]]:
+    with logfire.span("get_booking_by_confirmation", confirmation=confirmation):
+        try:
+            table_name = os.environ.get("BOOKINGS_TABLE_NAME", "bookings")
+            table = dynamodb.Table(table_name)
+            response = table.get_item(
+                Key={"confirmation": confirmation}
+            )
+
+            if "Item" in response:
+                booking = response["Item"]
+                logfire.info(
+                    "Retrieved booking from DynamoDB",
+                    confirmation=confirmation,
+                    has_address="street_address" in booking and booking.get("street_address")
+                )
+                return booking
+            else:
+                logfire.info("Booking not found", confirmation=confirmation)
+                return None
+
+        except ClientError as e:
+            error_code = e.response.get("Error", {}).get("Code", "Unknown")
+            error_message = e.response.get("Error", {}).get("Message", str(e))
+            logfire.error("Error retrieving booking from DynamoDB",
+                          error_code=error_code,
+                          error_message=error_message,
+                          confirmation=confirmation,
+                          table_name=table_name)
             raise

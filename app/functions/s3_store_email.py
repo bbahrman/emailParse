@@ -3,14 +3,19 @@ import boto3
 from botocore.exceptions import ClientError
 from app.parsers.booking import parse_email
 import logfire
-from app.models.booking import BookingWithMeta
-from app.functions.common import store_result
+from app.models.booking import BookingWithMeta, FullBookingTable
+from app.functions.common import store_result, get_booking_by_confirmation
+from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut, GeocoderServiceError
+from typing import Optional, Dict, Any
 
 # Configure logfire once at module level
 logfire.configure()
 logfire.instrument_pydantic()
 
 s3 = boto3.client("s3")
+dynamodb = boto3.resource("dynamodb")
+geolocator = Nominatim(user_agent="email-parse-booking-geocoder")
 
 
 def lambda_handler(event, context):
@@ -64,7 +69,87 @@ def lambda_handler(event, context):
             {"confirmation": booking.confirmation}
         )
 
+        with logfire.span("clean and validate"):
+            booking_retrieved = FullBookingTable.construct(get_booking_by_confirmation(booking.confirmation))
+            if not booking_retrieved.latitude:
+                full_address = \
+                    booking_retrieved.street_address + " " \
+                    + booking_retrieved.city + " " \
+                    + booking_retrieved.postal_code
+                logfire.info("geocoding", full_address=full_address)
+                gecode = geocode_address(full_address)
+                logfire.info("geocode complete", gecode)
+
     return {"statusCode": 200, "body": "OK"}
+
+
+def geocode_address(address: str) -> Optional[Dict[str, Any]]:
+
+    if not address or not address.strip():
+        logfire.info("Empty address provided for geocoding")
+        return None
+    
+    with logfire.span("geocode_address", address=address):
+        try:
+            location = geolocator.geocode(address, timeout=10)
+            
+            if location:
+                result = {
+                    "latitude": location.latitude,
+                    "longitude": location.longitude,
+                    "location": location.address,
+                    "raw": location.raw if hasattr(location, 'raw') else None
+                }
+                logfire.info("Successfully geocoded address", 
+                           address=address,
+                           latitude=result["latitude"],
+                           longitude=result["longitude"])
+                return result
+            else:
+                logfire.warning("No location found for address", address=address)
+                return None
+                
+        except GeocoderTimedOut:
+            logfire.error("Geocoding timed out", address=address)
+            return None
+        except GeocoderServiceError as e:
+            logfire.error("Geocoding service error", address=address, error=str(e))
+            return None
+        except Exception as e:
+            logfire.error("Unexpected error geocoding address", 
+                         address=address, 
+                         error=str(e),
+                         error_type=type(e).__name__)
+            return None
+
+
+def get_booking_with_coordinates(confirmation: str, table_name: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """
+    Retrieve a booking by confirmation number and geocode its address.
+    
+    Args:
+        confirmation: The booking confirmation ID
+        table_name: Optional table name (defaults to BOOKINGS_TABLE_NAME env var)
+        
+    Returns:
+        Booking dict with additional 'coordinates' field containing geocoded location,
+        or None if booking not found. Coordinates will be None if geocoding fails.
+    """
+    booking = get_booking_by_confirmation(confirmation, table_name)
+    
+    if not booking:
+        return None
+    
+    # Geocode the address if it exists
+    address = booking.get("address")
+    if address:
+        coordinates = geocode_address(address)
+        booking["coordinates"] = coordinates
+    else:
+        booking["coordinates"] = None
+        logfire.info("No address found in booking, skipping geocoding", confirmation=confirmation)
+    
+    return booking
 
 
 logfire.instrument_aws_lambda(lambda_handler)

@@ -6,3 +6,4 @@ logfire[aws-lambda]>=2.2.1
 fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
 mangum>=0.17.0
+geopy>=2.4.0

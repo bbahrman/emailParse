@@ -18,6 +18,7 @@ class Booking(BaseModel):
     cancellation_terms: str
     street_address: str
     city: str
+    postal_code: str
     booking_date: str
     what3words: str
     website: HttpUrl
@@ -28,6 +29,11 @@ class Booking(BaseModel):
 
 class BookingWithMeta(Booking):
     source_key: str
+
+
+class FullBookingTable(BookingWithMeta):
+    latitude: decimal
+    longitude: decimal
 
 
 class ExtractionResult(BaseModel):
