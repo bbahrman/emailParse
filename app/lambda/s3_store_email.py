@@ -27,10 +27,12 @@ def store_result(parsed: BookingWithMeta):
     # Use UpdateItem with SET for updated_at and SET if_not_exists for created_at
     # This ensures created_at is only set on first insert
     try:
-        logfire.info("Attempting to store booking in DynamoDB", 
-                    confirmation=parsed.confirmation,
-                    table_name=table_name,
-                    provider_name=parsed.provider_name)
+        logfire.info(
+            "Attempting to store booking in DynamoDB",
+            confirmation=parsed.confirmation,
+            table_name=table_name,
+            provider_name=parsed.provider_name
+        )
         
         with logfire.span("dynamodb_update_item", table=table_name, confirmation=parsed.confirmation):
             response = table.update_item(
