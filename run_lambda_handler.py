@@ -6,7 +6,6 @@ This script mocks S3 to serve the local fixture file and calls lambda_handler.
 import pathlib
 import sys
 from unittest.mock import Mock, MagicMock, patch
-from botocore.exceptions import ClientError
 
 # Add project root to path
 PROJECT_ROOT = pathlib.Path(__file__).parent

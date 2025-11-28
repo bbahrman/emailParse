@@ -24,7 +24,6 @@ class Booking(BaseModel):
     amount_total: str
     room_type: str
 
-
 class ExtractionResult(BaseModel):
     kind: str
     booking: Optional[Booking]
