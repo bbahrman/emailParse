@@ -4,7 +4,7 @@ from botocore.exceptions import ClientError
 from app.parsers.booking import parse_email
 import logfire
 from app.models.booking import BookingWithMeta, FullBookingTable
-from app.functions.common import store_result, get_booking_by_confirmation
+from app.functions.common import store_result, get_booking_by_confirmation, normalize_booking_data
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 from typing import Optional, Dict, Any
@@ -70,16 +70,46 @@ def lambda_handler(event, context):
         )
 
         with logfire.span("clean and validate"):
-            booking_retrieved = FullBookingTable.construct(get_booking_by_confirmation(booking.confirmation))
-            if not booking_retrieved.latitude:
-                full_address = \
-                    booking_retrieved.street_address + " " \
-                    + booking_retrieved.city + " " \
-                    + booking_retrieved.postal_code
-                logfire.info("geocoding", full_address=full_address)
-                gecode = geocode_address(full_address)
-                logfire.info("geocode complete", gecode)
-
+            booking_data = get_booking_by_confirmation(booking.confirmation)
+            if booking_data:
+                # Normalize the data to ensure all fields are present (None/empty string for missing)
+                # This prevents KeyError when accessing fields that don't exist in DynamoDB
+                normalized_data = normalize_booking_data(booking_data, FullBookingTable)
+                # Use model_construct to allow None values for missing fields without validation errors
+                booking_retrieved = FullBookingTable.model_construct(**normalized_data)
+            else:
+                logfire.warning("Booking not found in database", confirmation=booking.confirmation)
+                continue
+            
+            # Check if latitude is missing, None, or empty string
+            if not booking_retrieved.latitude or booking_retrieved.latitude == "":
+                # Build full address, handling None values
+                address_parts = []
+                if booking_retrieved.street_address:
+                    address_parts.append(booking_retrieved.street_address)
+                if booking_retrieved.city:
+                    address_parts.append(booking_retrieved.city)
+                if booking_retrieved.postal_code:
+                    address_parts.append(booking_retrieved.postal_code)
+                
+                if address_parts:
+                    full_address = " ".join(address_parts)
+                    logfire.info("geocoding", full_address=full_address)
+                    geocode_result = geocode_address(full_address)
+                    booking_retrieved.latitude = geocode_result.get('latitude')
+                    booking_retrieved.longitude = geocode_result.get('longitude')
+                    logfire.info("geocode complete", geocode_result=geocode_result)
+                else:
+                    logfire.warning(
+                        "No address components available for geocoding",
+                        confirmation=booking.confirmation
+                    )
+    with logfire.span("re-save booking"):
+        store_result(
+            booking_retrieved,
+            os.environ.get("BOOKINGS_TABLE_NAME", "bookings"),
+            {"confirmation": booking_retrieved.confirmation}
+        )
     return {"statusCode": 200, "body": "OK"}
 
 

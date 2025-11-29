@@ -32,8 +32,8 @@ class BookingWithMeta(Booking):
 
 
 class FullBookingTable(BookingWithMeta):
-    latitude: decimal
-    longitude: decimal
+    latitude: decimal.Decimal
+    longitude: decimal.Decimal
 
 
 class ExtractionResult(BaseModel):

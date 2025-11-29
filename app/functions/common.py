@@ -3,7 +3,7 @@ import boto3
 from botocore.exceptions import ClientError
 from datetime import datetime
 import logfire
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Type
 
 dynamodb = boto3.resource("dynamodb")
 
@@ -113,3 +113,38 @@ def get_booking_by_confirmation(confirmation: str) -> Optional[Dict[str, Any]]:
                           confirmation=confirmation,
                           table_name=table_name)
             raise
+
+
+def normalize_booking_data(booking_data: Optional[Dict[str, Any]], model_class) -> Dict[str, Any]:
+    """
+    Normalize booking data from DynamoDB by ensuring all model fields are present.
+    Missing fields will be populated with None to prevent KeyError when accessing fields.
+    
+    Note: This allows None values for all missing fields. Use model_construct() instead of
+    model_validate() when constructing the model to allow None values for required fields.
+    
+    Args:
+        booking_data: Raw booking data from DynamoDB (or None)
+        model_class: The Pydantic model class to normalize against
+        
+    Returns:
+        Dict with all model fields present (None for missing fields)
+    """
+    if booking_data is None:
+        booking_data = {}
+    
+    # Get all field names from the model
+    model_fields = set(model_class.model_fields.keys())
+    
+    # Get all keys present in the data
+    data_keys = set(booking_data.keys())
+    
+    # Create normalized dict with all model fields
+    normalized = booking_data.copy()
+    
+    # Add None for any missing fields to prevent KeyError when accessing
+    missing_fields = model_fields - data_keys
+    for field_name in missing_fields:
+        normalized[field_name] = None
+    
+    return normalized
