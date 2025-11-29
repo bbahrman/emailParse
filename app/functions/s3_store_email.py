@@ -8,6 +8,7 @@ from app.functions.common import store_result, get_booking_by_confirmation, norm
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 from typing import Optional, Dict, Any
+from decimal import Decimal
 
 # Configure logfire once at module level
 logfire.configure()
@@ -96,9 +97,20 @@ def lambda_handler(event, context):
                     full_address = " ".join(address_parts)
                     logfire.info("geocoding", full_address=full_address)
                     geocode_result = geocode_address(full_address)
-                    booking_retrieved.latitude = geocode_result.get('latitude')
-                    booking_retrieved.longitude = geocode_result.get('longitude')
-                    logfire.info("geocode complete", geocode_result=geocode_result)
+                    if geocode_result:
+                        # Convert float values to Decimal for DynamoDB compatibility
+                        latitude = geocode_result.get('latitude')
+                        longitude = geocode_result.get('longitude')
+                        if latitude is not None:
+                            booking_retrieved.latitude = Decimal(str(latitude))
+                        if longitude is not None:
+                            booking_retrieved.longitude = Decimal(str(longitude))
+                        logfire.info("geocode complete", 
+                                   latitude=latitude, 
+                                   longitude=longitude,
+                                   geocode_result=geocode_result)
+                    else:
+                        logfire.warning("Geocoding returned no result", full_address=full_address)
                 else:
                     logfire.warning(
                         "No address components available for geocoding",
