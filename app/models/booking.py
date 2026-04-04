@@ -1,7 +1,7 @@
 import decimal
 from datetime import date
 from pydantic import BaseModel, HttpUrl
-from typing import Optional
+from typing import Optional, List
 
 
 class Booking(BaseModel):
@@ -39,6 +39,26 @@ class FullBookingTable(BookingWithMeta):
 class ExtractionResult(BaseModel):
     kind: str
     booking: Optional[Booking]
+
+
+class Visit(BaseModel):
+    """A visit to a city as part of a trip."""
+    start_date: str
+    end_date: str
+    trip: str
+
+
+class City(BaseModel):
+    """City entry with geocoded location and visits."""
+    city_name: str
+    country: str
+    state: Optional[str] = None
+    latitude: Optional[decimal.Decimal] = None
+    longitude: Optional[decimal.Decimal] = None
+    location_name: Optional[str] = None  # Full formatted address from geocoding
+    visits: Optional[List[Visit]] = []
+    # Use city name + country (+ state if provided) as unique identifier
+    city_id: str  # Format: "city_name,country" or "city_name,state,country"
 
 
 def get_extract_booking_tool():

@@ -39,17 +39,14 @@ async def get_bookings_by_date_range(
     start_date: Optional[str] = Query(
         None,
         description="Start date for filtering (ISO format: YYYY-MM-DD or full date string)",
-        example="2025-11-17"
     ),
     end_date: Optional[str] = Query(
         None,
         description="End date for filtering (ISO format: YYYY-MM-DD or full date string)",
-        example="2025-11-20"
     ),
     date_field: str = Query(
         "check_in_date",
         description="Date field to filter on (check_in_date, check_out_date, booking_date, created_at)",
-        example="check_in_date"
     )
 ):
     """

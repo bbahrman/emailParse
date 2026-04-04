@@ -111,6 +111,77 @@ class DynamoDBService:
                          end_date=end_date)
             raise
     
+    def get_all_cities(self) -> List[Dict[str, Any]]:
+        """
+        Get all city items from DynamoDB.
+        Cities are identified by having a city_id field.
+        """
+        try:
+            with logfire.span("dynamodb_scan_cities"):
+                scan_kwargs = {
+                    "FilterExpression": "attribute_exists(city_id)",
+                }
+                all_items = []
+                response = self.table.scan(**scan_kwargs)
+                all_items.extend(response.get("Items", []))
+
+                while "LastEvaluatedKey" in response:
+                    scan_kwargs["ExclusiveStartKey"] = response["LastEvaluatedKey"]
+                    response = self.table.scan(**scan_kwargs)
+                    all_items.extend(response.get("Items", []))
+
+                return [self._convert_dynamodb_item(item) for item in all_items]
+
+        except ClientError as e:
+            logfire.error("Error scanning cities from DynamoDB", error=str(e))
+            raise
+
+    def get_all_bookings(self) -> List[Dict[str, Any]]:
+        """
+        Get all booking items from DynamoDB.
+        Bookings are identified by having a guest_name field (not city_id).
+        """
+        try:
+            with logfire.span("dynamodb_scan_bookings"):
+                scan_kwargs = {
+                    "FilterExpression": "attribute_exists(guest_name) AND attribute_not_exists(city_id)",
+                }
+                all_items = []
+                response = self.table.scan(**scan_kwargs)
+                all_items.extend(response.get("Items", []))
+
+                while "LastEvaluatedKey" in response:
+                    scan_kwargs["ExclusiveStartKey"] = response["LastEvaluatedKey"]
+                    response = self.table.scan(**scan_kwargs)
+                    all_items.extend(response.get("Items", []))
+
+                return [self._convert_dynamodb_item(item) for item in all_items]
+
+        except ClientError as e:
+            logfire.error("Error scanning bookings from DynamoDB", error=str(e))
+            raise
+
+    def get_cities_by_trip(self, trip_name: str) -> List[Dict[str, Any]]:
+        """Get all cities that have a visit with the given trip name."""
+        cities = self.get_all_cities()
+        return [
+            city for city in cities
+            if any(
+                visit.get("trip") == trip_name
+                for visit in (city.get("visits") or [])
+            )
+        ]
+
+    def get_all_trip_names(self) -> List[str]:
+        """Get all unique trip names across all cities."""
+        cities = self.get_all_cities()
+        trip_names = set()
+        for city in cities:
+            for visit in (city.get("visits") or []):
+                if visit.get("trip"):
+                    trip_names.add(visit["trip"])
+        return sorted(trip_names)
+
     def _convert_dynamodb_item(self, item: Dict[str, Any]) -> Dict[str, Any]:
         """
         Convert DynamoDB item format to regular Python dict.

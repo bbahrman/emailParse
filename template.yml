@@ -1,0 +1,126 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  ApiKeyValue:
+    Type: String
+    Description: API key for authenticating requests to the bookings API
+    NoEcho: true
+  OpenAIApiKey:
+    Type: String
+    Description: OpenAI API key for email parsing
+    NoEcho: true
+
+Resources:
+  # DynamoDB table for storing bookings
+  BookingsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: bookings
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: confirmation
+          AttributeType: S
+      KeySchema:
+        - AttributeName: confirmation
+          KeyType: HASH
+      Tags:
+        - Key: Name
+          Value: bookings-table
+
+  OutputBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: email-parsed-output-bucket
+
+  OpenAIApiKeySecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: openai-api-key
+      SecretString: !Sub '{"api_key": "${OpenAIApiKey}"}'
+
+  EmailParseFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: email-parse-lambda
+      CodeUri: .
+      Handler: app.app.lambda_handler
+      Runtime: python3.11
+      Timeout: 300
+      MemorySize: 512
+      Environment:
+        Variables:
+          OUTPUT_BUCKET: !Ref OutputBucket
+          OUTPUT_PREFIX: parsed-emails/
+          OPENAI_API_KEY_SECRET_ARN: !Ref OpenAIApiKeySecret
+          BOOKINGS_TABLE_NAME: !Ref BookingsTable
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+              Resource: !Sub 'arn:aws:s3:::emails-to-process/*'
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+              Resource: !Sub '${OutputBucket.Arn}/*'
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Ref OpenAIApiKeySecret
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:GetItem
+              Resource: !GetAtt BookingsTable.Arn
+
+  # FastAPI Lambda function for booking queries
+  BookingsApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: bookings-api-lambda
+      CodeUri: .
+      Handler: app.lambda_handler_api.lambda_handler
+      Runtime: python3.11
+      Timeout: 30
+      MemorySize: 512
+      Environment:
+        Variables:
+          BOOKINGS_TABLE_NAME: !Ref BookingsTable
+          API_KEY: !Ref ApiKeyValue
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:Scan
+                - dynamodb:Query
+              Resource: !GetAtt BookingsTable.Arn
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+            TimeoutInMillis: 30000
+            PayloadFormatVersion: "2.0"
+
+Outputs:
+  BookingsTableName:
+    Description: Name of the DynamoDB bookings table
+    Value: !Ref BookingsTable
+    Export:
+      Name: !Sub '${AWS::StackName}-BookingsTableName'
+  BookingsTableArn:
+    Description: ARN of the DynamoDB bookings table
+    Value: !GetAtt BookingsTable.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-BookingsTableArn'
+  BookingsApiUrl:
+    Description: API Gateway HTTP API endpoint URL
+    Value: !Sub 'https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com'
+    Export:
+      Name: !Sub '${AWS::StackName}-BookingsApiUrl'

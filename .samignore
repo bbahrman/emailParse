@@ -1,0 +1,70 @@
+# SAM ignore file - files excluded from SAM build/deploy
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Testing
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+.aws-sam/
+.aws-package/
+.aws-source-package/
+*.zip
+*.egg-info/
+dist/
+build/
+
+# Documentation
+*.md
+!README*.md
+DEPLOYMENT_NOTES.md
+SYNC_CONSOLE_CHANGES.md
+
+# Sync outputs
+sync_output/
+
+# Git
+.git/
+.gitignore
+
+# Local scripts
+*.sh
+!deploy.sh
+
+# Test files
+test-event.json
+*.http
+
+# Temporary files
+*.log
+*.tmp
+.DS_Store
+
+# 1Password
+.env.op
+
+# History
+.history/
+
