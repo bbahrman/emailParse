@@ -1,0 +1,9 @@
+{
+	"id": "obsidian-travel-sync",
+	"name": "Travel Sync",
+	"version": "1.0.0",
+	"minAppVersion": "1.0.0",
+	"description": "Syncs travel trip data from your booking API into Obsidian notes.",
+	"author": "Ben Bahrman",
+	"isDesktopOnly": false
+}

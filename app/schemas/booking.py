@@ -97,3 +97,10 @@ class ObsidianTripExport(BaseModel):
     booking_notes: List[ObsidianBookingNote]
     city_notes: List[ObsidianBookingNote]
 
+
+class ObsidianTripNote(BaseModel):
+    """A single consolidated trip note for Obsidian sync."""
+    trip_name: str
+    filename: str
+    content: str
+
