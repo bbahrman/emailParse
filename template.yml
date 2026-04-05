@@ -9,7 +9,7 @@ Parameters:
   CorsAllowedOrigins:
     Type: String
     Description: Comma-separated list of allowed CORS origins
-    Default: "http://localhost:3000,https://travel.benbahrman.com"
+    Default: "http://localhost:3000,https://travel.benbahrman.com,https://travel-app.benbahrman.workers.dev"
 
 Resources:
   # DynamoDB table for storing bookings
@@ -83,6 +83,7 @@ Resources:
         AllowOrigins:
           - "http://localhost:3000"
           - "https://travel.benbahrman.com"
+          - "https://travel-app.benbahrman.workers.dev"
         AllowHeaders:
           - Content-Type
           - Authorization
@@ -92,6 +93,7 @@ Resources:
           - PUT
           - DELETE
           - OPTIONS
+        MaxAge: 86400
       Auth:
         DefaultAuthorizer: CognitoAuthorizer
         Authorizers:
@@ -176,6 +178,17 @@ Resources:
             Method: ANY
             TimeoutInMillis: 30000
             PayloadFormatVersion: "2.0"
+        # CORS preflight - no auth
+        OptionsApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TravelHttpApi
+            Path: /{proxy+}
+            Method: OPTIONS
+            TimeoutInMillis: 5000
+            PayloadFormatVersion: "2.0"
+            Auth:
+              Authorizer: NONE
         # Export routes - no auth (Obsidian plugin compatibility)
         ExportApi:
           Type: HttpApi

@@ -114,12 +114,13 @@ def lambda_handler(event, context):
                         "No address components available for geocoding",
                         confirmation=booking.confirmation
                     )
-    with logfire.span("re-save booking"):
-        store_result(
-            booking_retrieved,
-            os.environ.get("BOOKINGS_TABLE_NAME", "bookings"),
-            {"confirmation": booking_retrieved.confirmation}
-        )
+
+        with logfire.span("re-save booking"):
+            store_result(
+                booking_retrieved,
+                os.environ.get("BOOKINGS_TABLE_NAME", "bookings"),
+                {"confirmation": booking_retrieved.confirmation}
+            )
     return {"statusCode": 200, "body": "OK"}
 
 

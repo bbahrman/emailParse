@@ -33,6 +33,7 @@ sam deploy \
     --resolve-s3 \
     --profile default \
     --parameter-overrides \
-        "AnthropicApiKey=$TRAVEL_ANTHROPIC_API_KEY"
+        "AnthropicApiKey=$TRAVEL_ANTHROPIC_API_KEY" \
+        "CorsAllowedOrigins=http://localhost:3000,https://travel.benbahrman.com,https://travel-app.benbahrman.workers.dev"
 
 echo "Deployment complete!"

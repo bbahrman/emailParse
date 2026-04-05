@@ -185,26 +185,22 @@ class DynamoDBService:
     def _convert_dynamodb_item(self, item: Dict[str, Any]) -> Dict[str, Any]:
         """
         Convert DynamoDB item format to regular Python dict.
-        
+
         boto3 resource API returns native Python types, but we handle both formats
-        in case we switch to low-level client API.
+        in case we switch to low-level client API. Decimal values are converted
+        to float/int for JSON serialization compatibility.
         """
+        from decimal import Decimal
         converted = {}
         for key, value in item.items():
-            if isinstance(value, dict):
+            if isinstance(value, Decimal):
+                converted[key] = str(value)
+            elif isinstance(value, dict):
                 # DynamoDB type descriptor (low-level API format)
                 if "S" in value:
                     converted[key] = value["S"]
                 elif "N" in value:
-                    # Try to convert to int, fallback to float
-                    num_str = value["N"]
-                    try:
-                        if "." in num_str:
-                            converted[key] = float(num_str)
-                        else:
-                            converted[key] = int(num_str)
-                    except ValueError:
-                        converted[key] = num_str
+                    converted[key] = value["N"]
                 elif "BOOL" in value:
                     converted[key] = value["BOOL"]
                 elif "NULL" in value:
@@ -212,7 +208,6 @@ class DynamoDBService:
                 else:
                     converted[key] = value
             else:
-                # Already native Python type (boto3 resource API)
                 converted[key] = value
         return converted
 
