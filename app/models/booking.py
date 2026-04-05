@@ -19,8 +19,13 @@ class Booking(BaseModel):
     cancellation_terms: str
     street_address: str
     city: str
-    departure_city: Optional[str] = ""  # For transit: where the journey starts
-    arrival_city: Optional[str] = ""    # For transit: where the journey ends
+    departure_city: Optional[str] = ""     # For transit: city of departure
+    arrival_city: Optional[str] = ""      # For transit: city of arrival
+    departure_station: Optional[str] = "" # For transit: station/airport name (e.g., "Kings Cross", "LHR T5")
+    arrival_station: Optional[str] = ""   # For transit: station/airport name
+    route_number: Optional[str] = ""      # Flight/train number (e.g., "BA123", "LNER 12:30")
+    seat_class: Optional[str] = ""        # e.g., "Standard Class", "Business"
+    seat_number: Optional[str] = ""       # e.g., "42A", "Coach C Seat 14"
     postal_code: str
     booking_date: str
     what3words: str

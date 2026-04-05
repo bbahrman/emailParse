@@ -94,6 +94,11 @@ class BookingForStorage(BaseModel):
     provider_name: Optional[str] = None
     departure_city: Optional[str] = None
     arrival_city: Optional[str] = None
+    departure_station: Optional[str] = None
+    arrival_station: Optional[str] = None
+    route_number: Optional[str] = None
+    seat_class: Optional[str] = None
+    seat_number: Optional[str] = None
     check_in_date: Optional[str] = None
     check_out_date: Optional[str] = None
     check_in_time: Optional[str] = None

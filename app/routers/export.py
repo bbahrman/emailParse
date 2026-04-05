@@ -140,12 +140,157 @@ def _format_date_range(start: str, end: str) -> str:
         return f"{start} - {end}"
 
 
+def _clean(value) -> str:
+    """Strip <UNKNOWN>, buggy 'True'/'False', and None values."""
+    if not value:
+        return ""
+    s = str(value).strip()
+    if s in ("<UNKNOWN>", "True", "False", "None", "unknown"):
+        return ""
+    return s
+
+
+def _format_hotel_lines(b: dict) -> list:
+    """Format a hotel booking as markdown lines."""
+    lines = []
+    provider = _clean(b.get("provider_name", ""))
+    if provider:
+        lines.append(provider)
+
+    breakfast = b.get("breakfast_included")
+    if breakfast is True:
+        lines.append("Breakfast included")
+    elif breakfast is False:
+        lines.append("Breakfast not included")
+
+    check_in_time = _clean(b.get("check_in_time", ""))
+    check_out_time = _clean(b.get("check_out_time", ""))
+    if check_in_time or check_out_time:
+        lines.append(f"Check-in and Out: {check_in_time or 'N/A'} / {check_out_time or 'N/A'}")
+
+    lines.append("")
+
+    address_parts = []
+    for field in ("street_address", "city", "postal_code"):
+        val = _clean(b.get(field, ""))
+        if val:
+            address_parts.append(val)
+    if address_parts:
+        lines.append(", ".join(address_parts))
+
+    website = _clean(str(b.get("website", "")) if b.get("website") else "")
+    if website:
+        lines.append(website)
+
+    conf = _clean(b.get("confirmation", ""))
+    if conf:
+        lines.append(conf)
+
+    return lines
+
+
+def _format_arrival_lines(b: dict) -> list:
+    """Format a transit booking as arrival lines (destination-focused)."""
+    lines = []
+    parts = []
+    provider = _clean(b.get("provider_name", ""))
+    route = _clean(b.get("route_number", ""))
+    arr_time = _clean(b.get("check_out_time", ""))
+    arr_station = _clean(b.get("arrival_station", ""))
+
+    if provider:
+        parts.append(provider)
+    if route:
+        parts.append(route)
+    if arr_time:
+        parts.append(arr_time)
+    if arr_station:
+        parts.append(arr_station)
+    if parts:
+        lines.append(" ".join(parts))
+
+    conf = _clean(b.get("confirmation", ""))
+    if conf:
+        lines.append(conf)
+
+    return lines
+
+
+def _format_departure_lines(b: dict) -> list:
+    """Format a transit booking as departure lines (full route)."""
+    lines = []
+    provider = _clean(b.get("provider_name", ""))
+    route = _clean(b.get("route_number", ""))
+
+    header = " ".join(p for p in [provider, route] if p)
+    if header:
+        lines.append(header)
+
+    dep_station = _clean(b.get("departure_station", ""))
+    dep_time = _clean(b.get("check_in_time", ""))
+    dep_line = " ".join(p for p in [dep_station, dep_time] if p)
+    if dep_line:
+        lines.append(dep_line)
+
+    arr_station = _clean(b.get("arrival_station", ""))
+    arr_time = _clean(b.get("check_out_time", ""))
+    arr_line = " ".join(p for p in [arr_station, arr_time] if p)
+    if arr_line:
+        lines.append(arr_line)
+
+    conf = _clean(b.get("confirmation", ""))
+    if conf:
+        lines.append(conf)
+
+    return lines
+
+
+def _match_transit_arrival(transit_bookings: list, city_name: str, arrival_date: str) -> list:
+    """Find transit bookings arriving at this city on this date."""
+    if not arrival_date:
+        return []
+    name_lower = city_name.lower()
+    matched = []
+    for b in transit_bookings:
+        arr_city = _clean(b.get("arrival_city", "")).lower()
+        dep_date = b.get("check_in_date", "")
+        out_date = b.get("check_out_date", "")
+        # Match by arrival_city + date, or by check_out_date (arrival date) matching visit start
+        if arr_city == name_lower and (dep_date == arrival_date or out_date == arrival_date):
+            matched.append(b)
+        elif not arr_city and out_date == arrival_date:
+            # Fallback: no arrival_city set, but arrival date matches
+            b_city = _clean(b.get("city", "")).lower()
+            if b_city != name_lower:
+                # city field is departure city, this is arriving somewhere else — could be us
+                matched.append(b)
+    return matched
+
+
+def _match_transit_departure(transit_bookings: list, city_name: str, departure_date: str) -> list:
+    """Find transit bookings departing from this city on this date."""
+    if not departure_date:
+        return []
+    name_lower = city_name.lower()
+    matched = []
+    for b in transit_bookings:
+        dep_city = _clean(b.get("departure_city", "")).lower()
+        dep_date = b.get("check_in_date", "")
+        if dep_city == name_lower and dep_date == departure_date:
+            matched.append(b)
+        elif not dep_city:
+            # Fallback: no departure_city, use city field
+            b_city = _clean(b.get("city", "")).lower()
+            if b_city == name_lower and dep_date == departure_date:
+                matched.append(b)
+    return matched
+
+
 @router.get("/obsidian/trip-note/{trip_name}", response_model=ObsidianTripNote)
 async def export_trip_note_for_obsidian(trip_name: str):
     """
     Export a trip as a single consolidated Obsidian markdown note.
-    This is the primary endpoint for the Obsidian plugin sync.
-    Returns one note with Hotels and City Notes sections matching the user's format.
+    City-centric itinerary format with Arrival/Hotel/Departure per city visit.
     """
     with logfire.span("export_obsidian_trip_note", trip_name=trip_name):
         cities = db_service.get_cities_by_trip(trip_name)
@@ -174,16 +319,22 @@ async def export_trip_note_for_obsidian(trip_name: str):
                 date_field="check_in_date",
             )
 
-        # Sort cities by their earliest visit start_date for this trip
-        def city_sort_key(c):
-            for v in (c.get("visits") or []):
-                if v.get("trip") == trip_name:
-                    return v.get("start_date") or "9999"
-            return "9999"
-        cities.sort(key=city_sort_key)
+        # Separate bookings by type
+        hotel_bookings = [b for b in bookings if b.get("booking_type", "hotel") not in ("train", "flight")]
+        transit_bookings = [b for b in bookings if b.get("booking_type") in ("train", "flight")]
 
-        # Sort bookings by check_in_date
-        bookings.sort(key=lambda b: b.get("check_in_date", ""))
+        # Build flat visit list sorted by start_date
+        visit_list = []
+        for city in cities:
+            city_name = city.get("city_name", "")
+            for v in (city.get("visits") or []):
+                if v.get("trip") == trip_name:
+                    visit_list.append({
+                        "city_name": city_name,
+                        "start_date": v.get("start_date") or "",
+                        "end_date": v.get("end_date") or "",
+                    })
+        visit_list.sort(key=lambda x: x["start_date"] or "9999")
 
         # Count days
         total_days = 0
@@ -215,94 +366,72 @@ async def export_trip_note_for_obsidian(trip_name: str):
             lines.append(f"### Days:")
             lines.append(f"{total_days}")
 
-        # Hotels section
-        lines.append("")
-        lines.append("# Hotels")
+        # Track used booking IDs to detect unmatched
+        used_hotel_ids = set()
+        used_transit_ids = set()
 
-        # Match bookings to cities by check-in date falling within a city visit
-        for city in cities:
-            visit_start = None
-            visit_end = None
-            for v in (city.get("visits") or []):
-                if v.get("trip") == trip_name:
-                    visit_start = v.get("start_date")
-                    visit_end = v.get("end_date")
-                    break
+        # City-centric itinerary
+        for visit in visit_list:
+            city_name = visit["city_name"]
+            v_start = visit["start_date"]
+            v_end = visit["end_date"]
 
-            city_name = city.get("city_name", "")
+            lines.append("")
+            lines.append(f"# {city_name}")
+            lines.append(f"[[{city_name}]]")
 
-            # Find bookings for this city's date range
-            city_bookings = []
-            for b in bookings:
-                check_in = b.get("check_in_date", "")
-                if visit_start and visit_end and visit_start <= check_in <= visit_end:
-                    city_bookings.append(b)
+            # Arrival
+            arrivals = _match_transit_arrival(transit_bookings, city_name, v_start)
+            if arrivals:
+                lines.append("## Arrival")
+                for i, b in enumerate(arrivals):
+                    used_transit_ids.add(b.get("confirmation", ""))
+                    if i == 0:
+                        lines.extend(_format_arrival_lines(b))
+                    else:
+                        # Additional arrivals as Local
+                        lines.append("### Local")
+                        lines.extend(_format_arrival_lines(b))
 
-            if city_bookings:
-                for b in city_bookings:
-                    lines.append(f"## {city_name} Hotel")
-                    provider = b.get("provider_name", "")
-                    if provider:
-                        lines.append(provider)
+            # Hotel
+            city_hotels = [
+                b for b in hotel_bookings
+                if (_clean(b.get("city", "")).lower() == city_name.lower()
+                    and b.get("check_in_date", "") >= v_start
+                    and b.get("check_in_date", "") <= (v_end or "9999")
+                    and b.get("confirmation") not in used_hotel_ids)
+            ]
+            city_hotels.sort(key=lambda b: b.get("check_in_date") or "")
+            for b in city_hotels:
+                used_hotel_ids.add(b.get("confirmation", ""))
+                lines.append("## Hotel")
+                lines.extend(_format_hotel_lines(b))
 
-                    breakfast = b.get("breakfast_included")
-                    if breakfast is True:
-                        lines.append("Breakfast included")
-                    elif breakfast is False:
-                        lines.append("Breakfast not included")
+            # Departure
+            departures = _match_transit_departure(transit_bookings, city_name, v_end)
+            if departures:
+                lines.append("## Departure")
+                for i, b in enumerate(departures):
+                    used_transit_ids.add(b.get("confirmation", ""))
+                    if i > 0:
+                        # Additional departures as Local before main
+                        lines.append("### Local")
+                    lines.extend(_format_departure_lines(b))
 
-                    check_in_time = b.get("check_in_time", "")
-                    check_out_time = b.get("check_out_time", "")
-                    if check_in_time or check_out_time:
-                        lines.append(f"{check_in_time or 'N/A'} / {check_out_time or 'N/A'}")
-
-                    if b.get("cancellation_terms"):
-                        lines.append(b["cancellation_terms"])
-
-                    lines.append("")
-
-                    # Address
-                    address_parts = []
-                    if b.get("street_address"):
-                        address_parts.append(b["street_address"])
-                    if b.get("city"):
-                        address_parts.append(b["city"])
-                    if b.get("postal_code"):
-                        address_parts.append(b["postal_code"])
-                    if address_parts:
-                        lines.append(", ".join(address_parts))
-
-                    if b.get("website"):
-                        lines.append(str(b["website"]))
-
-                    if b.get("confirmation"):
-                        lines.append(b["confirmation"])
-
-                    if b.get("amount_total"):
-                        lines.append(f"Total: {b['amount_total']}")
-
-                    if b.get("room_type"):
-                        lines.append(f"Room: {b['room_type']}")
-
-            else:
-                # City with no matching booking
-                lines.append(f"## {city_name} Hotel")
-                lines.append("*No booking found*")
-
-        # City Notes section
-        lines.append("")
-        lines.append("# City Notes")
-        for city in cities:
-            city_name = city.get("city_name", "")
-            for v in (city.get("visits") or []):
-                if v.get("trip") == trip_name:
-                    date_range = _format_date_range(
-                        v.get("start_date", ""),
-                        v.get("end_date", ""),
-                    )
-                    lines.append(f"## {city_name}")
-                    lines.append(date_range)
-                    lines.append(f"[[{city_name}]]")
+        # Unmatched bookings
+        unmatched_hotels = [b for b in hotel_bookings if b.get("confirmation") not in used_hotel_ids]
+        unmatched_transit = [b for b in transit_bookings if b.get("confirmation") not in used_transit_ids]
+        if unmatched_hotels or unmatched_transit:
+            lines.append("")
+            lines.append("# Unmatched Bookings")
+            for b in unmatched_hotels:
+                city = _clean(b.get("city", "")) or "Unknown"
+                lines.append(f"## {city} Hotel")
+                lines.extend(_format_hotel_lines(b))
+            for b in unmatched_transit:
+                provider = _clean(b.get("provider_name", ""))
+                lines.append(f"## {provider or 'Transit'}")
+                lines.extend(_format_departure_lines(b))
 
         content = "\n".join(lines) + "\n"
         filename = f"{trip_name} Trip Reservations.md"

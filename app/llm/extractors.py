@@ -70,10 +70,22 @@ def llm_extract_email(email_text: str) -> ExtractionResult:
     - Convert any date format you see to ISO format
     - For check_in_date, check_out_date, and booking_date: always use YYYY-MM-DD
     - Set booking_type to one of: "hotel", "train", "flight", "car", "tour", "other"
-    - For transit bookings (train, flight): set departure_city and arrival_city
-    - For transit: check_in_date/time = departure date/time, check_out_date/time = arrival date/time
-    - For transit: city = arrival_city (the destination)
-    - For hotels: departure_city and arrival_city can be empty
+
+    For HOTEL bookings:
+    - departure_city, arrival_city, departure_station, arrival_station, route_number, seat_class, seat_number can be empty
+
+    For TRANSIT bookings (train, flight):
+    - departure_city: city of departure (e.g., "London")
+    - arrival_city: city of arrival (e.g., "York")
+    - departure_station: station or airport name (e.g., "Kings Cross", "LHR Terminal 5")
+    - arrival_station: station or airport name (e.g., "York", "Paddington")
+    - route_number: flight number or train service (e.g., "BA123", "GWR 12:30")
+    - seat_class: class of travel (e.g., "Standard", "First Class", "Business")
+    - seat_number: seat assignment if available (e.g., "42A", "Coach C Seat 14")
+    - check_in_date/check_in_time = departure date/time
+    - check_out_date/check_out_time = arrival date/time
+    - city = departure_city
+    - street_address = departure_station
 
     OUTPUT:
     Use the extract_booking tool.

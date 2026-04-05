@@ -5,6 +5,11 @@ export interface BookingResponse {
   provider_name?: string | null;
   departure_city?: string | null;
   arrival_city?: string | null;
+  departure_station?: string | null;
+  arrival_station?: string | null;
+  route_number?: string | null;
+  seat_class?: string | null;
+  seat_number?: string | null;
   check_in_date?: string | null;
   check_out_date?: string | null;
   check_in_time?: string | null;
@@ -35,6 +40,11 @@ export interface BookingUpdateRequest {
   provider_name?: string;
   departure_city?: string;
   arrival_city?: string;
+  departure_station?: string;
+  arrival_station?: string;
+  route_number?: string;
+  seat_class?: string;
+  seat_number?: string;
   check_in_date?: string;
   check_out_date?: string;
   check_in_time?: string;
