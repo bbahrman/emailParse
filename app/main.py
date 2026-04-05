@@ -1,6 +1,7 @@
 """
 FastAPI application for travel booking and trip management.
 """
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import bookings, cities, trips, export
@@ -15,9 +16,11 @@ app = FastAPI(
     version="1.0.0",
 )
 
+cors_origins = os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[o.strip() for o in cors_origins],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

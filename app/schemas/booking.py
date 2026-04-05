@@ -37,6 +37,29 @@ class BookingResponse(BaseModel):
         from_attributes = True
 
 
+class BookingUpdateRequest(BaseModel):
+    """Request schema for updating a booking. All fields optional."""
+    guest_name: Optional[str] = None
+    provider_name: Optional[str] = None
+    check_in_date: Optional[str] = None
+    check_out_date: Optional[str] = None
+    check_in_time: Optional[str] = None
+    check_out_time: Optional[str] = None
+    early_check_in_time: Optional[str] = None
+    early_check_in_cost: Optional[str] = None
+    breakfast_included: Optional[bool] = None
+    cancellation_terms: Optional[str] = None
+    street_address: Optional[str] = None
+    city: Optional[str] = None
+    postal_code: Optional[str] = None
+    booking_date: Optional[str] = None
+    what3words: Optional[str] = None
+    website: Optional[str] = None
+    amount_paid: Optional[str] = None
+    amount_total: Optional[str] = None
+    room_type: Optional[str] = None
+
+
 class BookingsListResponse(BaseModel):
     """Response schema for list of bookings."""
     bookings: list[BookingResponse]

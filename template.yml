@@ -2,14 +2,14 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
 Parameters:
-  ApiKeyValue:
+  AnthropicApiKey:
     Type: String
-    Description: API key for authenticating requests to the bookings API
+    Description: Anthropic API key for email parsing with Claude
     NoEcho: true
-  OpenAIApiKey:
+  CorsAllowedOrigins:
     Type: String
-    Description: OpenAI API key for email parsing
-    NoEcho: true
+    Description: Comma-separated list of allowed CORS origins
+    Default: "http://localhost:3000,https://travel.benbahrman.com"
 
 Resources:
   # DynamoDB table for storing bookings
@@ -30,21 +30,85 @@ Resources:
 
   OutputBucket:
     Type: AWS::S3::Bucket
-    Properties:
-      BucketName: email-parsed-output-bucket
 
-  OpenAIApiKeySecret:
+  AnthropicApiKeySecret:
     Type: AWS::SecretsManager::Secret
     Properties:
-      Name: openai-api-key
-      SecretString: !Sub '{"api_key": "${OpenAIApiKey}"}'
+      Name: anthropic-api-key
+      SecretString: !Sub '{"api_key": "${AnthropicApiKey}"}'
+
+  # Cognito User Pool (single-user, admin-created only)
+  TravelUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: travel-app-users
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      AutoVerifiedAttributes:
+        - email
+      UsernameAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 12
+          RequireLowercase: true
+          RequireUppercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Required: true
+          Mutable: true
+
+  TravelUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: travel-web-client
+      UserPoolId: !Ref TravelUserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      SupportedIdentityProviders:
+        - COGNITO
+      PreventUserExistenceErrors: ENABLED
+
+  # Explicit HTTP API with JWT authorizer
+  TravelHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: $default
+      CorsConfiguration:
+        AllowOrigins:
+          - "http://localhost:3000"
+          - "https://travel.benbahrman.com"
+        AllowHeaders:
+          - Content-Type
+          - Authorization
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            AuthorizationScopes: []
+            IdentitySource: $request.header.Authorization
+            JwtConfiguration:
+              issuer: !Sub 'https://cognito-idp.${AWS::Region}.amazonaws.com/${TravelUserPool}'
+              audience:
+                - !Ref TravelUserPoolClient
 
   EmailParseFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: email-parse-lambda
       CodeUri: .
-      Handler: app.app.lambda_handler
+      Handler: app.functions.s3_store_email.lambda_handler
       Runtime: python3.11
       Timeout: 300
       MemorySize: 512
@@ -52,7 +116,7 @@ Resources:
         Variables:
           OUTPUT_BUCKET: !Ref OutputBucket
           OUTPUT_PREFIX: parsed-emails/
-          OPENAI_API_KEY_SECRET_ARN: !Ref OpenAIApiKeySecret
+          TRAVEL_ANTHROPIC_API_KEY_SECRET_ARN: !Ref AnthropicApiKeySecret
           BOOKINGS_TABLE_NAME: !Ref BookingsTable
       Policies:
         - Version: '2012-10-17'
@@ -68,7 +132,7 @@ Resources:
             - Effect: Allow
               Action:
                 - secretsmanager:GetSecretValue
-              Resource: !Ref OpenAIApiKeySecret
+              Resource: !Ref AnthropicApiKeySecret
             - Effect: Allow
               Action:
                 - dynamodb:PutItem
@@ -76,7 +140,7 @@ Resources:
                 - dynamodb:GetItem
               Resource: !GetAtt BookingsTable.Arn
 
-  # FastAPI Lambda function for booking queries
+  # FastAPI Lambda function for API
   BookingsApiFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -89,24 +153,51 @@ Resources:
       Environment:
         Variables:
           BOOKINGS_TABLE_NAME: !Ref BookingsTable
-          API_KEY: !Ref ApiKeyValue
+          CORS_ALLOWED_ORIGINS: !Ref CorsAllowedOrigins
       Policies:
         - Version: '2012-10-17'
           Statement:
             - Effect: Allow
               Action:
                 - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
                 - dynamodb:Scan
                 - dynamodb:Query
               Resource: !GetAtt BookingsTable.Arn
       Events:
+        # Authenticated routes (default authorizer)
         Api:
           Type: HttpApi
           Properties:
+            ApiId: !Ref TravelHttpApi
             Path: /{proxy+}
             Method: ANY
             TimeoutInMillis: 30000
             PayloadFormatVersion: "2.0"
+        # Export routes - no auth (Obsidian plugin compatibility)
+        ExportApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TravelHttpApi
+            Path: /export/{proxy+}
+            Method: GET
+            TimeoutInMillis: 30000
+            PayloadFormatVersion: "2.0"
+            Auth:
+              Authorizer: NONE
+        # Health check - no auth
+        HealthApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref TravelHttpApi
+            Path: /health
+            Method: GET
+            TimeoutInMillis: 5000
+            PayloadFormatVersion: "2.0"
+            Auth:
+              Authorizer: NONE
 
 Outputs:
   BookingsTableName:
@@ -121,6 +212,15 @@ Outputs:
       Name: !Sub '${AWS::StackName}-BookingsTableArn'
   BookingsApiUrl:
     Description: API Gateway HTTP API endpoint URL
-    Value: !Sub 'https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com'
+    Value: !Sub 'https://${TravelHttpApi}.execute-api.${AWS::Region}.amazonaws.com'
     Export:
       Name: !Sub '${AWS::StackName}-BookingsApiUrl'
+  UserPoolId:
+    Description: Cognito User Pool ID
+    Value: !Ref TravelUserPool
+  UserPoolClientId:
+    Description: Cognito User Pool Client ID
+    Value: !Ref TravelUserPoolClient
+  CognitoIssuerUrl:
+    Description: Cognito JWT issuer URL
+    Value: !Sub 'https://cognito-idp.${AWS::Region}.amazonaws.com/${TravelUserPool}'

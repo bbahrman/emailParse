@@ -62,11 +62,9 @@ class City(BaseModel):
 
 
 def get_extract_booking_tool():
+    """Return tool definition in Anthropic/Claude format."""
     return {
-        "type": "function",
-        "function": {
-            "name": "extract_booking",
-            "description": "Extracts booking information from an email.",
-            "parameters": ExtractionResult.model_json_schema(),
-        },
+        "name": "extract_booking",
+        "description": "Extracts booking information from an email.",
+        "input_schema": ExtractionResult.model_json_schema(),
     }

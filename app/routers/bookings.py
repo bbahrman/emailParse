@@ -3,8 +3,11 @@ FastAPI router for booking endpoints.
 """
 from fastapi import APIRouter, HTTPException, Query
 from typing import Optional, List
-from app.schemas.booking import BookingResponse, BookingsListResponse
+from app.schemas.booking import BookingResponse, BookingUpdateRequest, BookingsListResponse
 from app.services.dynamodb_service import DynamoDBService
+from app.functions.common import store_result
+from pydantic import BaseModel
+import os
 import logfire
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
@@ -81,4 +84,57 @@ async def get_bookings_by_date_range(
             bookings=booking_responses,
             count=len(booking_responses)
         )
+
+
+class BookingForStorage(BaseModel):
+    """Booking fields for DynamoDB storage. All optional for partial updates."""
+    confirmation: str
+    guest_name: Optional[str] = None
+    provider_name: Optional[str] = None
+    check_in_date: Optional[str] = None
+    check_out_date: Optional[str] = None
+    check_in_time: Optional[str] = None
+    check_out_time: Optional[str] = None
+    early_check_in_time: Optional[str] = None
+    early_check_in_cost: Optional[str] = None
+    breakfast_included: Optional[bool] = None
+    cancellation_terms: Optional[str] = None
+    street_address: Optional[str] = None
+    city: Optional[str] = None
+    postal_code: Optional[str] = None
+    booking_date: Optional[str] = None
+    what3words: Optional[str] = None
+    website: Optional[str] = None
+    amount_paid: Optional[str] = None
+    amount_total: Optional[str] = None
+    room_type: Optional[str] = None
+    latitude: Optional[str] = None
+    longitude: Optional[str] = None
+    source_key: Optional[str] = None
+
+
+@router.put("/{confirmation}", response_model=BookingResponse)
+async def update_booking(confirmation: str, body: BookingUpdateRequest):
+    """Update a booking by confirmation ID. Only provided fields are updated."""
+    with logfire.span("update_booking", confirmation=confirmation):
+        existing = db_service.get_booking_by_id(confirmation)
+        if not existing:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Booking with confirmation '{confirmation}' not found",
+            )
+
+        # Merge provided fields into existing data
+        updates = body.model_dump(exclude_unset=True)
+        merged = {**existing, **updates, "confirmation": confirmation}
+
+        storage = BookingForStorage(**{
+            k: v for k, v in merged.items()
+            if k in BookingForStorage.model_fields
+        })
+        table_name = os.environ.get("BOOKINGS_TABLE_NAME", "bookings")
+        store_result(storage, table_name, {"confirmation": confirmation})
+
+        updated = db_service.get_booking_by_id(confirmation)
+        return BookingResponse(**updated)
 

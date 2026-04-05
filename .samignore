@@ -68,3 +68,8 @@ test-event.json
 # History
 .history/
 
+# Frontend and plugins (not part of Lambda)
+web/
+obsidian-travel-sync/
+node_modules/
+

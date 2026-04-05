@@ -1,34 +1,38 @@
 #!/bin/bash
-# SAM deployment script for AWS Toolkit
-# Updates existing stack resources using configuration from samconfig.toml
+# SAM deployment script
+# Deploys to personal AWS account (profile: default)
+# Requires environment variable: TRAVEL_ANTHROPIC_API_KEY
 
-set -e  # Exit on error
+set -e
 
-echo "🚀 Starting SAM deployment..."
-echo ""
+if [ -z "$TRAVEL_ANTHROPIC_API_KEY" ]; then
+    echo "Error: TRAVEL_ANTHROPIC_API_KEY environment variable is not set"
+    exit 1
+fi
 
-# Step 1: Build the SAM application
-echo "📦 Building SAM application..."
+# Verify we're deploying to the correct account
+ACCOUNT_ID=$(aws sts get-caller-identity --profile default --query Account --output text 2>/dev/null)
+if [ "$ACCOUNT_ID" != "398501876458" ]; then
+    echo "Error: Expected personal account 398501876458 but got $ACCOUNT_ID"
+    exit 1
+fi
+
+echo "Building SAM application..."
 sam build
 
-if [ $? -ne 0 ]; then
-    echo "❌ SAM build failed!"
-    exit 1
-fi
+echo "Cleaning build artifacts (removing frontend/plugin from Lambda packages)..."
+rm -rf .aws-sam/build/EmailParseFunction/web \
+       .aws-sam/build/EmailParseFunction/obsidian-travel-sync \
+       .aws-sam/build/BookingsApiFunction/web \
+       .aws-sam/build/BookingsApiFunction/obsidian-travel-sync
 
-echo "✅ Build successful!"
-echo ""
+echo "Deploying stack to account $ACCOUNT_ID..."
+sam deploy \
+    --config-env default \
+    --no-fail-on-empty-changeset \
+    --resolve-s3 \
+    --profile default \
+    --parameter-overrides \
+        "AnthropicApiKey=$TRAVEL_ANTHROPIC_API_KEY"
 
-# Step 2: Deploy using samconfig.toml configuration
-# AWS Toolkit reads samconfig.toml automatically when using --config-env default
-echo "🚀 Deploying stack (using samconfig.toml)..."
-sam deploy --config-env default --no-fail-on-empty-changeset
-
-if [ $? -ne 0 ]; then
-    echo "❌ Deployment failed!"
-    exit 1
-fi
-
-echo ""
-echo "✅ Deployment complete!"
-
+echo "Deployment complete!"
