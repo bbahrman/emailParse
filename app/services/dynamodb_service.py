@@ -69,10 +69,11 @@ class DynamoDBService:
                              end_date=end_date,
                              date_field=date_field):
                 # Build filter expression
-                filter_expressions = []
+                # Always exclude city records (they have city_id attribute)
+                filter_expressions = ["attribute_not_exists(city_id)"]
                 expression_attribute_names = {}
                 expression_attribute_values = {}
-                
+
                 if start_date:
                     filter_expressions.append(f"#{date_field} >= :start_date")
                     expression_attribute_names[f"#{date_field}"] = date_field
@@ -87,8 +88,10 @@ class DynamoDBService:
                 scan_kwargs = {}
                 if filter_expressions:
                     scan_kwargs["FilterExpression"] = " AND ".join(filter_expressions)
-                    scan_kwargs["ExpressionAttributeNames"] = expression_attribute_names
-                    scan_kwargs["ExpressionAttributeValues"] = expression_attribute_values
+                    if expression_attribute_names:
+                        scan_kwargs["ExpressionAttributeNames"] = expression_attribute_names
+                    if expression_attribute_values:
+                        scan_kwargs["ExpressionAttributeValues"] = expression_attribute_values
                 
                 # Perform scan (with pagination)
                 all_items = []

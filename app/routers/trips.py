@@ -195,11 +195,38 @@ async def create_trip(request: CreateTripRequest):
         )
 
 
+def _cluster_bookings(bookings: list) -> list:
+    """
+    Group bookings into clusters where check-out of one overlaps or is adjacent
+    to check-in of the next. Returns list of (start_date, end_date) tuples.
+    """
+    dated = []
+    for b in bookings:
+        start = b.get("check_in_date", "")
+        end = b.get("check_out_date", "")
+        if start and end:
+            dated.append((start, end))
+    if not dated:
+        return []
+
+    dated.sort(key=lambda x: x[0])
+    clusters = [list(dated[0])]
+    for start, end in dated[1:]:
+        # If this booking starts on or before the current cluster ends, merge
+        if start <= clusters[-1][1]:
+            clusters[-1][1] = max(clusters[-1][1], end)
+        else:
+            clusters.append([start, end])
+
+    return [(c[0], c[1]) for c in clusters]
+
+
 @router.post("/{trip_name}/auto-assign", response_model=TripResponse)
 async def auto_assign_dates(trip_name: str):
     """
     Auto-assign visit dates for a trip by matching bookings to cities by name.
-    Only updates visits that are missing dates. Existing dates are preserved.
+    Creates one visit per booking cluster (non-contiguous date ranges become separate visits).
+    Existing visits with dates are preserved.
     """
     with logfire.span("auto_assign_dates", trip_name=trip_name):
         cities = db_service.get_cities_by_trip(trip_name)
@@ -213,22 +240,14 @@ async def auto_assign_dates(trip_name: str):
             city_name = city_data.get("city_name", "")
             city_id = city_data.get("city_id", city_data.get("confirmation", ""))
 
-            # Find the visit for this trip
             visits = []
-            target_visit_idx = None
-            for i, v in enumerate(city_data.get("visits") or []):
+            for v in (city_data.get("visits") or []):
                 visit = Visit(**v) if isinstance(v, dict) else v
                 visits.append(visit)
-                if visit.trip == trip_name:
-                    target_visit_idx = i
 
-            if target_visit_idx is None:
-                continue
-
-            visit = visits[target_visit_idx]
-
-            # Only update if dates are missing
-            if visit.start_date and visit.end_date:
+            # Find all visits for this trip (there may be multiple)
+            trip_visits = [(i, v) for i, v in enumerate(visits) if v.trip == trip_name]
+            if not trip_visits:
                 continue
 
             # Match bookings by city name
@@ -236,23 +255,45 @@ async def auto_assign_dates(trip_name: str):
             if not matched:
                 continue
 
-            if not visit.start_date:
-                visit.start_date = min(
-                    b.get("check_in_date", "") for b in matched if b.get("check_in_date")
-                )
-            if not visit.end_date:
-                visit.end_date = max(
-                    b.get("check_out_date", "") for b in matched if b.get("check_out_date")
-                )
+            clusters = _cluster_bookings(matched)
+            if not clusters:
+                continue
 
-            visits[target_visit_idx] = visit
+            # Count how many visits already have dates
+            dated_visits = [(i, v) for i, v in trip_visits if v.start_date and v.end_date]
+            dateless_visits = [(i, v) for i, v in trip_visits if not v.start_date or not v.end_date]
 
-            # Save updated city
-            normalized = normalize_booking_data(city_data, City)
-            city = City.model_construct(**normalized)
-            city.visits = visits
-            _store_city(city, city_id)
-            updated_count += 1
+            # Exclude clusters that are already covered by existing dated visits
+            uncovered_clusters = []
+            for c_start, c_end in clusters:
+                already_covered = any(
+                    v.start_date == c_start and v.end_date == c_end
+                    for _, v in dated_visits
+                )
+                if not already_covered:
+                    uncovered_clusters.append((c_start, c_end))
+
+            if not uncovered_clusters:
+                continue
+
+            # Assign uncovered clusters: fill dateless visits first, then add new ones
+            changed = False
+            for c_start, c_end in uncovered_clusters:
+                if dateless_visits:
+                    idx, visit = dateless_visits.pop(0)
+                    visit.start_date = c_start
+                    visit.end_date = c_end
+                    changed = True
+                else:
+                    visits.append(Visit(start_date=c_start, end_date=c_end, trip=trip_name))
+                    changed = True
+
+            if changed:
+                normalized = normalize_booking_data(city_data, City)
+                city = City.model_construct(**normalized)
+                city.visits = visits
+                _store_city(city, city_id)
+                updated_count += 1
 
         logfire.info("auto_assign_dates complete", trip_name=trip_name, updated=updated_count)
         return await get_trip(trip_name)

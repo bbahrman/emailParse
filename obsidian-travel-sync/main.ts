@@ -25,7 +25,7 @@ export default class TravelSyncPlugin extends Plugin {
 		});
 	}
 
-	private async runSync() {
+	async runSync() {
 		const sync = new TravelSync(this.app, this.settings);
 		await sync.syncTrips();
 	}

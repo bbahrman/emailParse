@@ -122,16 +122,43 @@ function StatCard({
   );
 }
 
+const TYPE_LABELS: Record<string, string> = {
+  hotel: "Hotel",
+  train: "Train",
+  flight: "Flight",
+  car: "Car",
+  tour: "Tour",
+  other: "Booking",
+};
+
 function BookingCard({ booking }: { booking: BookingResponse }) {
+  const isTransit = ["train", "flight"].includes(booking.booking_type || "");
+  const typeLabel = TYPE_LABELS[booking.booking_type || ""] || "";
+
   return (
     <Link
       href={`/bookings/${encodeURIComponent(booking.confirmation)}`}
       className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow space-y-1"
     >
-      <div className="font-medium">
-        {booking.provider_name || "Unknown Hotel"}
+      <div className="flex items-center gap-2">
+        <span className="font-medium">
+          {booking.provider_name || "Unknown"}
+        </span>
+        {typeLabel && (
+          <span className={`text-xs rounded px-1.5 py-0.5 ${
+            isTransit
+              ? "bg-purple-100 text-purple-700"
+              : "bg-blue-100 text-blue-700"
+          }`}>
+            {typeLabel}
+          </span>
+        )}
       </div>
-      <div className="text-sm text-gray-600">{booking.city || ""}</div>
+      <div className="text-sm text-gray-600">
+        {isTransit && booking.departure_city && booking.arrival_city
+          ? `${booking.departure_city} → ${booking.arrival_city}`
+          : booking.city || ""}
+      </div>
       <div className="text-sm text-gray-500">
         {booking.check_in_date || "?"} — {booking.check_out_date || "?"}
       </div>

@@ -8,8 +8,11 @@ from typing import Optional, List
 class BookingResponse(BaseModel):
     """Booking response schema with all fields from DynamoDB."""
     confirmation: str
+    booking_type: Optional[str] = None
     guest_name: Optional[str] = None
     provider_name: Optional[str] = None
+    departure_city: Optional[str] = None
+    arrival_city: Optional[str] = None
     check_in_date: Optional[str] = None
     check_out_date: Optional[str] = None
     check_in_time: Optional[str] = None
@@ -39,8 +42,11 @@ class BookingResponse(BaseModel):
 
 class BookingUpdateRequest(BaseModel):
     """Request schema for updating a booking. All fields optional."""
+    booking_type: Optional[str] = None
     guest_name: Optional[str] = None
     provider_name: Optional[str] = None
+    departure_city: Optional[str] = None
+    arrival_city: Optional[str] = None
     check_in_date: Optional[str] = None
     check_out_date: Optional[str] = None
     check_in_time: Optional[str] = None

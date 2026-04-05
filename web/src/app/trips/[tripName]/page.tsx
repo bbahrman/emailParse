@@ -244,24 +244,37 @@ function TripDetail() {
         <section>
           <h2 className="text-lg font-semibold mb-3">Bookings</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {trip.bookings.map((b) => (
-              <Link
-                key={b.confirmation}
-                href={`/bookings/${encodeURIComponent(b.confirmation)}`}
-                className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow space-y-1"
-              >
-                <div className="font-medium">{b.provider_name}</div>
-                <div className="text-sm text-gray-600">{b.city}</div>
-                <div className="text-sm text-gray-500">
-                  {b.check_in_date} — {b.check_out_date}
-                </div>
-                {b.amount_total && (
-                  <div className="text-sm text-gray-500">
-                    {b.amount_total}
+            {trip.bookings.map((b) => {
+              const isTransit = ["train", "flight"].includes(b.booking_type || "");
+              const typeLabel = { hotel: "Hotel", train: "Train", flight: "Flight", car: "Car", tour: "Tour" }[b.booking_type || ""] || "";
+              return (
+                <Link
+                  key={b.confirmation}
+                  href={`/bookings/${encodeURIComponent(b.confirmation)}`}
+                  className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow space-y-1"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{b.provider_name}</span>
+                    {typeLabel && (
+                      <span className={`text-xs rounded px-1.5 py-0.5 ${
+                        isTransit ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"
+                      }`}>{typeLabel}</span>
+                    )}
                   </div>
-                )}
-              </Link>
-            ))}
+                  <div className="text-sm text-gray-600">
+                    {isTransit && b.departure_city && b.arrival_city
+                      ? `${b.departure_city} → ${b.arrival_city}`
+                      : b.city}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {b.check_in_date} — {b.check_out_date}
+                  </div>
+                  {b.amount_total && (
+                    <div className="text-sm text-gray-500">{b.amount_total}</div>
+                  )}
+                </Link>
+              );
+            })}
           </div>
         </section>
       )}

@@ -89,8 +89,11 @@ async def get_bookings_by_date_range(
 class BookingForStorage(BaseModel):
     """Booking fields for DynamoDB storage. All optional for partial updates."""
     confirmation: str
+    booking_type: Optional[str] = None
     guest_name: Optional[str] = None
     provider_name: Optional[str] = None
+    departure_city: Optional[str] = None
+    arrival_city: Optional[str] = None
     check_in_date: Optional[str] = None
     check_out_date: Optional[str] = None
     check_in_time: Optional[str] = None

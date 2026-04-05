@@ -11,12 +11,18 @@ export interface TripsListResponse {
 
 export interface TravelSyncSettings {
 	apiUrl: string;
-	apiKey: string;
+	cognitoUserPoolId: string;
+	cognitoClientId: string;
+	cognitoEmail: string;
+	cognitoPassword: string;
 	tripsFolder: string;
 }
 
 export const DEFAULT_SETTINGS: TravelSyncSettings = {
 	apiUrl: "",
-	apiKey: "",
+	cognitoUserPoolId: "",
+	cognitoClientId: "",
+	cognitoEmail: "",
+	cognitoPassword: "",
 	tripsFolder: "Decimal System/10-19 Life admin/15 Travel, events, & entertainment 🎒/15.52 Active Trips",
 };

@@ -36,7 +36,7 @@ def parse_email(raw_bytes: bytes) -> Booking:
         with logfire.span("llm_extract_booking"):
             result: ExtractionResult = llm_extract_email(html)
 
-        if result.kind != "booking" or result.booking is None:
+        if result.kind == "marketing" or result.booking is None:
             raise ValueError("Email is not a booking or could not be parsed as one.")
 
         # result.booking is already a Booking (Pydantic model)

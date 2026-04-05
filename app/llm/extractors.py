@@ -1,9 +1,54 @@
 import json
+from datetime import datetime
 from app.models.booking import ExtractionResult, get_extract_booking_tool
 from app.llm.client import client
 import logfire
 
 logfire.configure()
+
+
+def _normalize_date(date_str: str) -> str:
+    """Try to parse various date formats and return ISO format (YYYY-MM-DD)."""
+    if not date_str or date_str == "<UNKNOWN>":
+        return date_str
+
+    # Already ISO format
+    if len(date_str) == 10 and date_str[4] == "-" and date_str[7] == "-":
+        return date_str
+
+    formats = [
+        "%d/%m/%Y",           # 12/05/2026
+        "%m/%d/%Y",           # 05/12/2026
+        "%B %d, %Y",         # May 12, 2026
+        "%b %d, %Y",         # May 12, 2026
+        "%A, %B %d, %Y",    # Saturday, May 9, 2026
+        "%d %B %Y",          # 12 May 2026
+        "%d %b %Y",          # 12 May 2026
+        "%Y-%m-%dT%H:%M:%S", # 2026-05-12T00:00:00
+    ]
+    for fmt in formats:
+        try:
+            return datetime.strptime(date_str.strip(), fmt).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+
+    logfire.warning("Could not normalize date", date_str=date_str)
+    return date_str
+
+
+def _normalize_booking_dates(result: ExtractionResult) -> ExtractionResult:
+    """Normalize all date fields in an extraction result to ISO format."""
+    if not result.booking:
+        return result
+
+    b = result.booking
+    date_fields = ["check_in_date", "check_out_date", "booking_date"]
+    for field in date_fields:
+        val = getattr(b, field, None)
+        if val:
+            setattr(b, field, _normalize_date(val))
+
+    return result
 
 
 def llm_extract_email(email_text: str) -> ExtractionResult:
@@ -19,6 +64,16 @@ def llm_extract_email(email_text: str) -> ExtractionResult:
     1. Determine if this is a BOOKING email or MARKETING email.
     2. If booking, extract all booking details.
     3. If marketing, set kind="marketing" and booking=null.
+
+    IMPORTANT rules:
+    - ALL dates MUST be in ISO format: YYYY-MM-DD (e.g., 2026-05-12)
+    - Convert any date format you see to ISO format
+    - For check_in_date, check_out_date, and booking_date: always use YYYY-MM-DD
+    - Set booking_type to one of: "hotel", "train", "flight", "car", "tour", "other"
+    - For transit bookings (train, flight): set departure_city and arrival_city
+    - For transit: check_in_date/time = departure date/time, check_out_date/time = arrival date/time
+    - For transit: city = arrival_city (the destination)
+    - For hotels: departure_city and arrival_city can be empty
 
     OUTPUT:
     Use the extract_booking tool.
@@ -40,6 +95,7 @@ def llm_extract_email(email_text: str) -> ExtractionResult:
         for block in response.content:
             if block.type == "tool_use":
                 logfire.info("LLM tool_use", tool_input=block.input)
-                return ExtractionResult(**block.input)
+                result = ExtractionResult(**block.input)
+                return _normalize_booking_dates(result)
 
         raise ValueError("No tool_use block found in Claude response")

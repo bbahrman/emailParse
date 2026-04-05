@@ -1,7 +1,10 @@
 export interface BookingResponse {
   confirmation: string;
+  booking_type?: string | null;
   guest_name?: string | null;
   provider_name?: string | null;
+  departure_city?: string | null;
+  arrival_city?: string | null;
   check_in_date?: string | null;
   check_out_date?: string | null;
   check_in_time?: string | null;
@@ -27,8 +30,11 @@ export interface BookingResponse {
 }
 
 export interface BookingUpdateRequest {
+  booking_type?: string;
   guest_name?: string;
   provider_name?: string;
+  departure_city?: string;
+  arrival_city?: string;
   check_in_date?: string;
   check_out_date?: string;
   check_in_time?: string;

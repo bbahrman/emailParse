@@ -178,7 +178,7 @@ async def export_trip_note_for_obsidian(trip_name: str):
         def city_sort_key(c):
             for v in (c.get("visits") or []):
                 if v.get("trip") == trip_name:
-                    return v.get("start_date", "9999")
+                    return v.get("start_date") or "9999"
             return "9999"
         cities.sort(key=city_sort_key)
 

@@ -9,10 +9,12 @@ import type { BookingResponse, BookingUpdateRequest } from "@/lib/types";
 const FIELDS: { key: keyof BookingUpdateRequest; label: string; type?: string }[] = [
   { key: "guest_name", label: "Guest Name" },
   { key: "provider_name", label: "Provider" },
-  { key: "check_in_date", label: "Check-in Date", type: "date" },
-  { key: "check_out_date", label: "Check-out Date", type: "date" },
-  { key: "check_in_time", label: "Check-in Time" },
-  { key: "check_out_time", label: "Check-out Time" },
+  { key: "departure_city", label: "Departure City" },
+  { key: "arrival_city", label: "Arrival City" },
+  { key: "check_in_date", label: "Check-in / Departure Date", type: "date" },
+  { key: "check_out_date", label: "Check-out / Arrival Date", type: "date" },
+  { key: "check_in_time", label: "Check-in / Departure Time" },
+  { key: "check_out_time", label: "Check-out / Arrival Time" },
   { key: "street_address", label: "Address" },
   { key: "city", label: "City" },
   { key: "postal_code", label: "Postal Code" },
@@ -38,6 +40,7 @@ function BookingEdit() {
   const router = useRouter();
   const [booking, setBooking] = useState<BookingResponse | null>(null);
   const [form, setForm] = useState<Record<string, string>>({});
+  const [bookingType, setBookingType] = useState("hotel");
   const [breakfastIncluded, setBreakfastIncluded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -53,6 +56,7 @@ function BookingEdit() {
           f[key] = (b[key as keyof BookingResponse] as string) || "";
         }
         setForm(f);
+        setBookingType(b.booking_type || "hotel");
         setBreakfastIncluded(b.breakfast_included || false);
       })
       .finally(() => setLoading(false));
@@ -64,7 +68,7 @@ function BookingEdit() {
     setSaving(true);
     setMessage("");
     try {
-      const updates: BookingUpdateRequest = { breakfast_included: breakfastIncluded };
+      const updates: BookingUpdateRequest = { booking_type: bookingType, breakfast_included: breakfastIncluded };
       for (const { key } of FIELDS) {
         const val = form[key];
         if (val !== undefined && val !== "") {
@@ -94,6 +98,22 @@ function BookingEdit() {
       <h1 className="text-2xl font-bold">{booking.confirmation}</h1>
 
       <form onSubmit={handleSave} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Booking Type</label>
+          <select
+            value={bookingType}
+            onChange={(e) => setBookingType(e.target.value)}
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="hotel">Hotel</option>
+            <option value="train">Train</option>
+            <option value="flight">Flight</option>
+            <option value="car">Car Rental</option>
+            <option value="tour">Tour</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
         {FIELDS.map(({ key, label, type }) => (
           <div key={key}>
             <label className="block text-sm font-medium mb-1">{label}</label>

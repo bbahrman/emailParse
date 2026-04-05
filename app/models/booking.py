@@ -8,6 +8,7 @@ class Booking(BaseModel):
     guest_name: str
     provider_name: str
     confirmation: str
+    booking_type: Optional[str] = "hotel"  # "hotel", "train", "flight", "car", "tour", "other"
     check_in_date: str
     check_out_date: str
     check_in_time: str
@@ -18,6 +19,8 @@ class Booking(BaseModel):
     cancellation_terms: str
     street_address: str
     city: str
+    departure_city: Optional[str] = ""  # For transit: where the journey starts
+    arrival_city: Optional[str] = ""    # For transit: where the journey ends
     postal_code: str
     booking_date: str
     what3words: str
