@@ -2,3 +2,27 @@
 .env.op
 /.history
 /.aws-sam
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+*.egg-info/
+
+# Node / Next.js
+node_modules/
+web/.next/
+web/.open-next/
+obsidian-travel-sync/main.js
+obsidian-travel-sync/node_modules/
+
+# OS
+.DS_Store
+
+# Wrangler
+web/.wrangler/
+
+# Sync outputs
+sync_output/

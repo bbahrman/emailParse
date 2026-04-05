@@ -5,6 +5,8 @@ import type {
   BookingsListResponse,
   CitiesListResponse,
   CityResponse,
+  CreateTripRequest,
+  TripPreviewResponse,
   TripResponse,
   TripsListResponse,
 } from "./types";
@@ -32,6 +34,21 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 export const listTrips = () => apiFetch<TripsListResponse>("/trips/");
 export const getTrip = (name: string) =>
   apiFetch<TripResponse>(`/trips/${encodeURIComponent(name)}`);
+export const previewTrip = (data: CreateTripRequest) =>
+  apiFetch<TripPreviewResponse>("/trips/preview", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+export const createTrip = (data: CreateTripRequest) =>
+  apiFetch<TripResponse>("/trips/create", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+export const autoAssignDates = (tripName: string) =>
+  apiFetch<TripResponse>(
+    `/trips/${encodeURIComponent(tripName)}/auto-assign`,
+    { method: "POST" }
+  );
 
 // Cities
 export const listCities = (trip?: string) =>
@@ -50,6 +67,48 @@ export const updateCity = (
   if (params.state !== undefined) qs.set("state", params.state);
   return apiFetch<CityResponse>(
     `/cities/${encodeURIComponent(id)}?${qs.toString()}`,
+    { method: "PUT" }
+  );
+};
+
+export const createCity = (params: {
+  city_name: string;
+  country: string;
+  state?: string;
+}) => {
+  const qs = new URLSearchParams();
+  qs.set("city_name", params.city_name);
+  qs.set("country", params.country);
+  if (params.state) qs.set("state", params.state);
+  return apiFetch<CityResponse>(`/cities/?${qs.toString()}`, {
+    method: "POST",
+  });
+};
+export const addVisit = (
+  cityId: string,
+  params: { start_date?: string; end_date?: string; trip: string }
+) => {
+  const qs = new URLSearchParams();
+  if (params.start_date) qs.set("start_date", params.start_date);
+  if (params.end_date) qs.set("end_date", params.end_date);
+  qs.set("trip", params.trip);
+  return apiFetch<CityResponse>(
+    `/cities/${encodeURIComponent(cityId)}/visits?${qs.toString()}`,
+    { method: "POST" }
+  );
+};
+export const updateVisit = (
+  cityId: string,
+  visitIndex: number,
+  params: { start_date?: string; end_date?: string; trip?: string }
+) => {
+  const qs = new URLSearchParams();
+  qs.set("visit_index", visitIndex.toString());
+  if (params.start_date !== undefined) qs.set("start_date", params.start_date);
+  if (params.end_date !== undefined) qs.set("end_date", params.end_date);
+  if (params.trip !== undefined) qs.set("trip", params.trip);
+  return apiFetch<CityResponse>(
+    `/cities/${encodeURIComponent(cityId)}/visits?${qs.toString()}`,
     { method: "PUT" }
   );
 };

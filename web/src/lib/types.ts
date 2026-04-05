@@ -54,8 +54,8 @@ export interface BookingsListResponse {
 }
 
 export interface VisitResponse {
-  start_date: string;
-  end_date: string;
+  start_date?: string | null;
+  end_date?: string | null;
   trip: string;
 }
 
@@ -84,4 +84,33 @@ export interface TripResponse {
 export interface TripsListResponse {
   trips: string[];
   count: number;
+}
+
+export interface TripCityInput {
+  city_name: string;
+  country: string;
+  state?: string;
+  start_date?: string;
+  end_date?: string;
+}
+
+export interface CreateTripRequest {
+  trip_name: string;
+  cities: TripCityInput[];
+}
+
+export interface TripCitySuggestion {
+  city_name: string;
+  country: string;
+  state?: string | null;
+  city_id?: string | null;
+  city_exists: boolean;
+  suggested_start_date?: string | null;
+  suggested_end_date?: string | null;
+  matched_bookings: BookingResponse[];
+}
+
+export interface TripPreviewResponse {
+  trip_name: string;
+  cities: TripCitySuggestion[];
 }

@@ -43,8 +43,8 @@ class ExtractionResult(BaseModel):
 
 class Visit(BaseModel):
     """A visit to a city as part of a trip."""
-    start_date: str
-    end_date: str
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
     trip: str
 
 

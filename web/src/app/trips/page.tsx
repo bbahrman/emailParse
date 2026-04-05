@@ -25,7 +25,15 @@ function TripsContent() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Trips</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Trips</h1>
+        <Link
+          href="/trips/new"
+          className="bg-blue-600 text-white rounded px-4 py-2 text-sm hover:bg-blue-700"
+        >
+          New Trip
+        </Link>
+      </div>
       {loading ? (
         <p className="text-gray-500">Loading...</p>
       ) : trips.length === 0 ? (

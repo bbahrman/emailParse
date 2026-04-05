@@ -68,8 +68,8 @@ class BookingsListResponse(BaseModel):
 
 class VisitResponse(BaseModel):
     """Visit response schema."""
-    start_date: str
-    end_date: str
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
     trip: str
 
 
@@ -105,6 +105,39 @@ class TripsListResponse(BaseModel):
     """Response schema for list of trips."""
     trips: List[str]
     count: int
+
+
+class TripCityInput(BaseModel):
+    """A city to include in a trip, with optional date overrides."""
+    city_name: str
+    country: str
+    state: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+
+
+class CreateTripRequest(BaseModel):
+    """Request to create a trip with cities. Dates auto-assigned from bookings if not provided."""
+    trip_name: str
+    cities: List[TripCityInput]
+
+
+class TripCitySuggestion(BaseModel):
+    """A city with auto-suggested dates from matching bookings."""
+    city_name: str
+    country: str
+    state: Optional[str] = None
+    city_id: Optional[str] = None
+    city_exists: bool = False
+    suggested_start_date: Optional[str] = None
+    suggested_end_date: Optional[str] = None
+    matched_bookings: List[BookingResponse] = []
+
+
+class TripPreviewResponse(BaseModel):
+    """Preview of a trip before creation, with auto-suggested dates."""
+    trip_name: str
+    cities: List[TripCitySuggestion]
 
 
 class ObsidianBookingNote(BaseModel):

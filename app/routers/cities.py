@@ -172,8 +172,8 @@ async def update_city(
 @router.post("/{city_id}/visits", response_model=CityResponse)
 async def add_visit(
     city_id: str,
-    start_date: str = Query(..., description="Visit start date"),
-    end_date: str = Query(..., description="Visit end date"),
+    start_date: Optional[str] = Query(None, description="Visit start date"),
+    end_date: Optional[str] = Query(None, description="Visit end date"),
     trip: str = Query(..., description="Trip name"),
 ):
     """Add a visit to an existing city."""
@@ -203,13 +203,13 @@ async def add_visit(
 @router.put("/{city_id}/visits", response_model=CityResponse)
 async def update_visit(
     city_id: str,
-    trip: str = Query(..., description="Trip name to identify the visit"),
+    visit_index: int = Query(..., description="Index of the visit to update (0-based)"),
     start_date: Optional[str] = Query(None),
     end_date: Optional[str] = Query(None),
-    new_trip: Optional[str] = Query(None, description="New trip name"),
+    trip: Optional[str] = Query(None, description="New trip name"),
 ):
-    """Update a specific visit in a city by trip name."""
-    with logfire.span("update_visit", city_id=city_id, trip=trip):
+    """Update a specific visit in a city by index."""
+    with logfire.span("update_visit", city_id=city_id, visit_index=visit_index):
         city_data = db_service.get_booking_by_id(city_id)
         if not city_data:
             raise HTTPException(status_code=404, detail=f"City not found: {city_id}")
@@ -225,23 +225,19 @@ async def update_visit(
         city = City.model_construct(**normalized)
         city.visits = visits
 
-        found = False
-        for visit in city.visits:
-            if visit.trip == trip:
-                if start_date:
-                    visit.start_date = start_date
-                if end_date:
-                    visit.end_date = end_date
-                if new_trip:
-                    visit.trip = new_trip
-                found = True
-                break
-
-        if not found:
+        if visit_index < 0 or visit_index >= len(city.visits):
             raise HTTPException(
                 status_code=404,
-                detail=f'Visit with trip "{trip}" not found in city: {city_id}',
+                detail=f"Visit index {visit_index} out of range (city has {len(city.visits)} visits)",
             )
+
+        visit = city.visits[visit_index]
+        if start_date is not None:
+            visit.start_date = start_date
+        if end_date is not None:
+            visit.end_date = end_date
+        if trip is not None:
+            visit.trip = trip
 
         _store_city(city, city_id)
         return _city_data_to_response(city.model_dump(mode="json"))

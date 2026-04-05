@@ -29,6 +29,7 @@ def update_table(
     expression_attribute_values[":created_at"] = now
 
     # Dynamically process all fields from the model
+    # Use expression attribute names (#alias) for all fields to avoid DynamoDB reserved keyword conflicts
     for field_name, field_value in values_dict.items():
         if field_name == "website":
             field_value = str(field_value)
@@ -36,18 +37,24 @@ def update_table(
         if field_name in key_object or field_value == "":
             continue
 
-        update_parts.append(f"{field_name} = :{field_name}")
+        alias = f"#f_{field_name}"
+        update_parts.append(f"{alias} = :{field_name}")
+        expression_attribute_names[alias] = field_name
         expression_attribute_values[f":{field_name}"] = field_value
 
     # Build the update expression
     update_expression = "SET " + ", ".join(update_parts)
 
-    response = table.update_item(
-        Key=key_object,
-        UpdateExpression=update_expression,
-        ExpressionAttributeValues=expression_attribute_values,
-        ReturnValues="ALL_NEW"  # Return the updated item for verification
-    )
+    update_kwargs = {
+        "Key": key_object,
+        "UpdateExpression": update_expression,
+        "ExpressionAttributeValues": expression_attribute_values,
+        "ReturnValues": "ALL_NEW",
+    }
+    if expression_attribute_names:
+        update_kwargs["ExpressionAttributeNames"] = expression_attribute_names
+
+    response = table.update_item(**update_kwargs)
 
     return response
 
