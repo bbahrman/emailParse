@@ -140,6 +140,16 @@ def _format_date_range(start: str, end: str) -> str:
         return f"{start} - {end}"
 
 
+def _format_date_with_day(date_str: str) -> str:
+    """Format a date as 'Friday May 9'."""
+    try:
+        from datetime import datetime as dt
+        d = dt.strptime(date_str, "%Y-%m-%d")
+        return f"{d.strftime('%A')} {d.strftime('%B')} {d.day}"
+    except (ValueError, TypeError):
+        return date_str
+
+
 def _clean(value) -> str:
     """Strip <UNKNOWN>, buggy 'True'/'False', and None values."""
     if not value:
@@ -370,53 +380,74 @@ async def export_trip_note_for_obsidian(trip_name: str):
         used_hotel_ids = set()
         used_transit_ids = set()
 
-        # City-centric itinerary
+        # Group visits by city name (preserving order of first appearance)
+        from collections import OrderedDict
+        city_visits = OrderedDict()
         for visit in visit_list:
-            city_name = visit["city_name"]
-            v_start = visit["start_date"]
-            v_end = visit["end_date"]
+            cn = visit["city_name"]
+            if cn not in city_visits:
+                city_visits[cn] = []
+            city_visits[cn].append(visit)
 
+        # City-centric itinerary
+        for city_name, visits in city_visits.items():
             lines.append("")
             lines.append(f"# {city_name}")
+
+            # Date ranges — one per visit, joined with " and "
+            date_ranges = []
+            for v in visits:
+                if v["start_date"] and v["end_date"]:
+                    date_ranges.append(_format_date_range(v["start_date"], v["end_date"]))
+                elif v["start_date"]:
+                    date_ranges.append(_format_date_range(v["start_date"], v["start_date"]))
+            if date_ranges:
+                lines.append(" and ".join(date_ranges))
+
             lines.append(f"[[{city_name}]]")
 
-            # Arrival
-            arrivals = _match_transit_arrival(transit_bookings, city_name, v_start)
-            if arrivals:
-                lines.append("## Arrival")
-                for i, b in enumerate(arrivals):
-                    used_transit_ids.add(b.get("confirmation", ""))
-                    if i == 0:
-                        lines.extend(_format_arrival_lines(b))
-                    else:
-                        # Additional arrivals as Local
-                        lines.append("### Local")
-                        lines.extend(_format_arrival_lines(b))
+            # Emit Arrival/Hotel/Departure for each visit
+            for v in visits:
+                v_start = v["start_date"]
+                v_end = v["end_date"]
 
-            # Hotel
-            city_hotels = [
-                b for b in hotel_bookings
-                if (_clean(b.get("city", "")).lower() == city_name.lower()
-                    and b.get("check_in_date", "") >= v_start
-                    and b.get("check_in_date", "") <= (v_end or "9999")
-                    and b.get("confirmation") not in used_hotel_ids)
-            ]
-            city_hotels.sort(key=lambda b: b.get("check_in_date") or "")
-            for b in city_hotels:
-                used_hotel_ids.add(b.get("confirmation", ""))
-                lines.append("## Hotel")
-                lines.extend(_format_hotel_lines(b))
+                # Arrival
+                arrivals = _match_transit_arrival(transit_bookings, city_name, v_start)
+                if arrivals:
+                    date_label = _format_date_with_day(v_start) if v_start else ""
+                    lines.append(f"## Arrival - {date_label}" if date_label else "## Arrival")
+                    for i, b in enumerate(arrivals):
+                        used_transit_ids.add(b.get("confirmation", ""))
+                        if i == 0:
+                            lines.extend(_format_arrival_lines(b))
+                        else:
+                            lines.append("### Local")
+                            lines.extend(_format_arrival_lines(b))
 
-            # Departure
-            departures = _match_transit_departure(transit_bookings, city_name, v_end)
-            if departures:
-                lines.append("## Departure")
-                for i, b in enumerate(departures):
-                    used_transit_ids.add(b.get("confirmation", ""))
-                    if i > 0:
-                        # Additional departures as Local before main
-                        lines.append("### Local")
-                    lines.extend(_format_departure_lines(b))
+                # Hotel
+                city_hotels = [
+                    b for b in hotel_bookings
+                    if (_clean(b.get("city", "")).lower() == city_name.lower()
+                        and b.get("check_in_date", "") >= v_start
+                        and b.get("check_in_date", "") <= (v_end or "9999")
+                        and b.get("confirmation") not in used_hotel_ids)
+                ]
+                city_hotels.sort(key=lambda b: b.get("check_in_date") or "")
+                for b in city_hotels:
+                    used_hotel_ids.add(b.get("confirmation", ""))
+                    lines.append("## Hotel")
+                    lines.extend(_format_hotel_lines(b))
+
+                # Departure
+                departures = _match_transit_departure(transit_bookings, city_name, v_end)
+                if departures:
+                    date_label = _format_date_with_day(v_end) if v_end else ""
+                    lines.append(f"## Departure - {date_label}" if date_label else "## Departure")
+                    for i, b in enumerate(departures):
+                        used_transit_ids.add(b.get("confirmation", ""))
+                        if i > 0:
+                            lines.append("### Local")
+                        lines.extend(_format_departure_lines(b))
 
         # Unmatched bookings
         unmatched_hotels = [b for b in hotel_bookings if b.get("confirmation") not in used_hotel_ids]
